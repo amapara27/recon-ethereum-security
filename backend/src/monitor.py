@@ -3,8 +3,8 @@ import os
 from dotenv import load_dotenv
 from web3 import Web3
 
-dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
-load_dotenv(dotenv_path)
+env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+load_dotenv(env_path)
 
 rpc_url = os.environ.get('ALCHEMY_RPC_URL')
 
