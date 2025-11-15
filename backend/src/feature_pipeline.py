@@ -34,9 +34,6 @@ def fetch_eth_history(address):
     else:
         return pd.DataFrame()
 
-    eth_csv_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'eth_history.csv')
-    eth_df.to_csv(eth_csv_path, index = False)
-
     return eth_df
 
 def fetch_erc_20_history(address):
@@ -59,10 +56,7 @@ def fetch_erc_20_history(address):
     else:
         print(f"Etherscan API Error for ERC20: {erc20_history_dict['message']}")
         return pd.DataFrame()
-
-    erc20_csv_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'erc20_history.csv')
-    erc20_df.to_csv(erc20_csv_path, index = False)
-
+    
     return erc20_df
 
 def eth_feature_generator(df, address):
@@ -185,9 +179,6 @@ def eth_feature_generator(df, address):
     }
 
     eth_feature_df = pd.DataFrame(eth_feature_dict, index=[0])
-
-    csv_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'eth_features.csv')
-    eth_feature_df.to_csv(csv_path, index = False)
 
     return eth_feature_df
 
@@ -384,11 +375,7 @@ def erc20_feature_generator(df, address, sent_vocab_path, rec_vocab_path):
         **rec_token_features
     }
 
-
     erc20_feature_df = pd.DataFrame(final_feature_dict, index=[0])
-
-    csv_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'erc20_features.csv')
-    erc20_feature_df.to_csv(csv_path, index = False)
 
     return erc20_feature_df
     
@@ -409,9 +396,6 @@ def get_feature_vector(address, sent_path, rec_path, master_column_list):
         columns=master_column_list, 
         fill_value=0
     )
-
-    csv_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'vector_features.csv' )
-    final_vector_df.to_csv(csv_path, index = False)
 
     return final_vector_df
 
