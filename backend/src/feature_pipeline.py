@@ -2,9 +2,11 @@ import os
 from dotenv import load_dotenv
 
 import requests
+import ast
 import pandas as pd
 
 from io import StringIO
+
 
 env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
 load_dotenv(env_path)
@@ -249,13 +251,12 @@ def erc20_feature_generator(df, address, sent_vocab_path, rec_vocab_path):
         'ERC20_uniq_rec_contract_addr': ERC20_uniq_rec_contract_addr,
         'ERC20_avg_time_between_sent_tnx': ERC20_avg_time_between_sent_tnx,
         'ERC20_avg_time_between_rec_tnx': ERC20_avg_time_between_rec_tnx,
-        # 'ERC20_avg_time_between_rec_2_tnx': 0, # Skipping as logic is undefined
         'ERC20_avg_time_between_contract_tnx': ERC20_avg_time_between_contract_tnx,
         'ERC20_min_val_rec': ERC20_min_val_rec,
         'ERC20_max_val_rec': ERC20_max_val_rec,
         'ERC20_avg_val_rec': ERC20_avg_val_rec,
         'ERC20_min_val_sent': ERC20_min_val_sent,
-        'ERC20_max_val sent': ERC20_max_val_sent, # Matching CSV typo
+        'ERC20_max_val_sent': ERC20_max_val_sent,
         'ERC20_avg_val_sent': ERC20_avg_val_sent,
         'ERC20_min_val_sent_contract': ERC20_min_val_sent_contract,
         'ERC20_max_val_sent_contract': ERC20_max_val_sent_contract,
@@ -318,11 +319,30 @@ def erc20_feature_generator(df, address, sent_vocab_path, rec_vocab_path):
 
     return erc20_feature_df
     
+def get_feature_vector(address, sent_path, rec_path, master_column_list):
+    """
+    This function takes the LOADED master_column_list (a LIST),
+    not the filepath (a string).
+    """
+    eth_df = fetch_eth_history(address)
+    eth_features_df = eth_feature_generator(eth_df, address)
+
+    erc20_df = fetch_erc_20_history(address)
+    erc20_features_df = erc20_feature_generator(erc20_df, address, sent_path, rec_path)
+
+    combined_features_df = pd.concat([eth_features_df, erc20_features_df], axis=1)
+
+    final_vector_df = combined_features_df.reindex(
+        columns=master_column_list, 
+        fill_value=0
+    )
+
+    csv_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'vector_features.csv' )
+    final_vector_df.to_csv(csv_path, index = False)
+
+    return final_vector_df
+
 def load_token_vocabulary(filepath: str) -> set:
-    """
-    Loads the master list of token columns from a text file.
-    Returns a set for fast lookups.
-    """
     try:
         with open(filepath, 'r') as f:
             # .strip("', ") removes the quotes, commas, and whitespace
@@ -331,19 +351,43 @@ def load_token_vocabulary(filepath: str) -> set:
         print(f"CRITICAL ERROR: Vocabulary file not found at {filepath}")
         return set()
 
+def load_master_column_list(filepath: str) -> list:
+    """
+    Loads a clean, one-column-per-line text file.
+    """
+    try:
+        with open(filepath, 'r') as f:
+            # .splitlines() reads the file and splits by each newline
+            # .strip() cleans up any extra whitespace
+            return [line.strip() for line in f.read().splitlines() if line.strip()]
+    except FileNotFoundError:
+        print(f"CRITICAL ERROR: Master column list not found at {filepath}")
+        return []
+    except Exception as e:
+        print(f"An unexpected error occurred reading master column list: {e}")
+        return []
+
 def main():
-    address = "0xbE982C014bC3b3D847782e9Fc1162aB34F260134" # Random placeholder wallet for now
+    address = "0xbE982C014bC3b3D847782e9Fc1162aB34F260134" # Placeholder
+    
+    base_dir = os.path.dirname(__file__)
+    sent_path = 'master_sent.txt'
+    rec_path = 'master_rec.txt'
+    master_column_path = 'master_column_list.txt'
 
-    eth_df = fetch_eth_history(address)
-    eth_feature_generator(eth_df, address)
+    MASTER_COLUMN_LIST = load_master_column_list(master_column_path)
+    
+    if not MASTER_COLUMN_LIST:
+        print("Failed to load master column list. Exiting.")
+        return
 
-    sent_path = "master_sent.txt"
-    rec_path = "master_rec.txt"
+    df = get_feature_vector(address, sent_path, rec_path, MASTER_COLUMN_LIST)
+    print("--- Final Vector Generated ---")
+    print(df.head())
 
-    erc20_df = fetch_erc_20_history(address)
-    erc20_feature_generator(erc20_df, address, sent_path, rec_path)
-
-
+    
 if __name__== "__main__":
     main()
-
+    
+if __name__== "__main__":
+    main()
