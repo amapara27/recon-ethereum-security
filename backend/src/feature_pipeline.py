@@ -194,8 +194,53 @@ def eth_feature_generator(df, address):
 def erc20_feature_generator(df, address, sent_vocab_path, rec_vocab_path):
     # Cleaning
     if df.empty:
-        print(f"No successful ERC20 transactions found for {address}. Returning empty DataFrame.")
-        return pd.DataFrame()
+        print(f"No successful ERC20 transactions found for {address}. Returning default ERC20 features.")
+        # Return default quantitative features with all zeros
+        default_quant_features = {
+            'ERC20_total_tnxs': 0,
+            'ERC20_total_ether_received': 0,
+            'ERC20_total_ether_sent': 0,
+            'ERC20_total_ether_sent_to_contract': 0,
+            'ERC20_uniq_sent_addr': 0,
+            'ERC20_uniq_rec_addr': 0,
+            'ERC20_uniq_sent_contract_addr': 0,
+            'ERC20_uniq_rec_contract_addr': 0,
+            'ERC20_avg_time_between_sent_tnx': 0,
+            'ERC20_avg_time_between_rec_tnx': 0,
+            'ERC20_avg_time_between_contract_tnx': 0,
+            'ERC20_min_val_rec': 0,
+            'ERC20_max_val_rec': 0,
+            'ERC20_avg_val_rec': 0,
+            'ERC20_min_val_sent': 0,
+            'ERC20_max_val_sent': 0,
+            'ERC20_avg_val_sent': 0,
+            'ERC20_min_val_sent_contract': 0,
+            'ERC20_max_val_sent_contract': 0,
+            'ERC20_avg_val_sent_contract': 0,
+            'ERC20_uniq_sent_token_name': 0,
+            'ERC20_uniq_rec_token_name': 0
+        }
+        
+        # Load token vocabularies and add categorical features (all zeros)
+        MASTER_SENT_TOKEN_COLS = load_token_vocabulary(sent_vocab_path)
+        MASTER_REC_TOKEN_COLS = load_token_vocabulary(rec_vocab_path)
+        
+        sent_token_features = {col_name: 0 for col_name in MASTER_SENT_TOKEN_COLS}
+        rec_token_features = {col_name: 0 for col_name in MASTER_REC_TOKEN_COLS}
+        
+        # Set "None" token to 1 (no transactions = None token)
+        if "ERC20_most_sent_token_None" in sent_token_features:
+            sent_token_features["ERC20_most_sent_token_None"] = 1
+        if "ERC20_most_rec_token_None" in rec_token_features:
+            rec_token_features["ERC20_most_rec_token_None"] = 1
+        
+        final_features = {
+            **default_quant_features,
+            **sent_token_features,
+            **rec_token_features
+        }
+        
+        return pd.DataFrame([final_features])
 
     df['timeStamp'] = pd.to_numeric(df['timeStamp'], errors='coerce')
     df['timeStamp'] = pd.to_datetime(df['timeStamp'], unit='s')
@@ -382,12 +427,12 @@ def load_token_vocabulary(filepath: str) -> set:
 def load_master_column_list(filepath: str) -> list:
     """
     Loads a clean, one-column-per-line text file.
+    Preserves exact column names including trailing spaces.
     """
     try:
         with open(filepath, 'r') as f:
-            # .splitlines() reads the file and splits by each newline
-            # .strip() cleans up any extra whitespace
-            return [line.strip() for line in f.read().splitlines() if line.strip()]
+            # Only strip newlines, preserve spaces in column names
+            return [line.rstrip('\n\r') for line in f if line.rstrip('\n\r')]
     except FileNotFoundError:
         print(f"CRITICAL ERROR: Master column list not found at {filepath}")
         return []

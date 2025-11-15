@@ -1,7 +1,12 @@
-from web3 import Web3
 import os
+import sqlite3
+import time
+import joblib
+
 from dotenv import load_dotenv
 from web3 import Web3
+
+from feature_pipeline import get_feature_vector, load_master_column_list, load_token_vocabulary
 
 env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
 load_dotenv(env_path)
