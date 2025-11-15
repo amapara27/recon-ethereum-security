@@ -34,7 +34,7 @@ def fetch_eth_history(address):
     else:
         return pd.DataFrame()
 
-    eth_csv_path = os.path.join(os.path.dirname(__file__), '..', 'data/' 'eth_history.csv')
+    eth_csv_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'eth_history.csv')
     eth_df.to_csv(eth_csv_path, index = False)
 
     return eth_df
@@ -60,19 +60,47 @@ def fetch_erc_20_history(address):
         print(f"Etherscan API Error for ERC20: {erc20_history_dict['message']}")
         return pd.DataFrame()
 
-    erc20_csv_path = os.path.join(os.path.dirname(__file__), '..', 'data/' 'erc20_history.csv' )
+    erc20_csv_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'erc20_history.csv')
     erc20_df.to_csv(erc20_csv_path, index = False)
 
     return erc20_df
 
 def eth_feature_generator(df, address):
+    # Handle empty DataFrame
+    if df.empty:
+        print(f"No ETH transactions found for {address}. Returning default features.")
+        return pd.DataFrame({
+            'avg_min_between_sent_tnx': [0],
+            'avg_min_between_received_tnx': [0],
+            'time_diff_between_first_and_last': [0],
+            'sent_tnx': [0],
+            'received_tnx': [0],
+            'num_created_contracts': [0],
+            'unique_received_from_addresses': [0],
+            'unique_sent_to_addresses': [0],
+            'min_value_received': [0],
+            'max_value_received': [0],
+            'avg_val_received': [0],
+            'min_val_sent': [0],
+            'max_val_sent': [0],
+            'avg_val_sent': [0],
+            'min_val_sent_to_contract': [0],
+            'max_val_sent_to_contract': [0],
+            'avg_val_sent_to_contract': [0],
+            'total_transactions': [0],
+            'total_ether_sent': [0],
+            'total_ether_received': [0],
+            'total_ether_sent_to_contract': [0],
+            'total_ether_balance': [0]
+        })
+    
     # Cleaning
     df = df[df['isError'] == '0']
 
     df['timeStamp'] = pd.to_numeric(df['timeStamp'])
     df['timeStamp'] = pd.to_datetime(df['timeStamp'], unit='s')
 
-    df['value'] = pd.to_numeric(df['value']) / 10**18
+    df['value'] = pd.to_numeric(df['value'], errors='coerce').fillna(0) / 10**18
 
     sent_df = df[df['from'].str.lower() == address.lower()]
     received_df = df[df['to'].str.lower() == address.lower()]
@@ -105,7 +133,7 @@ def eth_feature_generator(df, address):
     if received_diff.isnull().all():
         avg_min_between_received_tnx = 0
     else:
-        avg_min_between_received_tnx = received_diff.mean() / 60
+        avg_min_between_received_tnx = received_diff.mean().total_seconds() / 60
 
     unique_sent_to_addresses = sent_df['to'].nunique()
     unique_received_from_addresses = received_df['from'].nunique()
@@ -158,7 +186,7 @@ def eth_feature_generator(df, address):
 
     eth_feature_df = pd.DataFrame(eth_feature_dict, index=[0])
 
-    csv_path = os.path.join(os.path.dirname(__file__), '..', 'data/' 'eth_features.csv' )
+    csv_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'eth_features.csv')
     eth_feature_df.to_csv(csv_path, index = False)
 
     return eth_feature_df
@@ -314,7 +342,7 @@ def erc20_feature_generator(df, address, sent_vocab_path, rec_vocab_path):
 
     erc20_feature_df = pd.DataFrame(final_feature_dict, index=[0])
 
-    csv_path = os.path.join(os.path.dirname(__file__), '..', 'data/' 'erc20_features.csv' )
+    csv_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'erc20_features.csv')
     erc20_feature_df.to_csv(csv_path, index = False)
 
     return erc20_feature_df
@@ -368,12 +396,12 @@ def load_master_column_list(filepath: str) -> list:
         return []
 
 def main():
-    address = "0xbE982C014bC3b3D847782e9Fc1162aB34F260134" # Placeholder
+    address = "0xab8bd0d4eda57cd9ee5a058e498a791df13dfa65" # Placeholder
     
     base_dir = os.path.dirname(__file__)
-    sent_path = 'master_sent.txt'
-    rec_path = 'master_rec.txt'
-    master_column_path = 'master_column_list.txt'
+    sent_path = 'lists/master_sent.txt'
+    rec_path = 'lists/master_rec.txt'
+    master_column_path = 'lists/master_column_list.txt'
 
     MASTER_COLUMN_LIST = load_master_column_list(master_column_path)
     
@@ -385,9 +413,6 @@ def main():
     print("--- Final Vector Generated ---")
     print(df.head())
 
-    
-if __name__== "__main__":
-    main()
     
 if __name__== "__main__":
     main()
