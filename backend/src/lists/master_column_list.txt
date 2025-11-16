@@ -30,7 +30,6 @@ ERC20_uniq_sent_contract_addr
 ERC20_uniq_rec_contract_addr
 ERC20_avg_time_between_sent_tnx
 ERC20_avg_time_between_rec_tnx
-ERC20_avg_time_between_rec_2_tnx
 ERC20_avg_time_between_contract_tnx
 ERC20_min_val_rec
 ERC20_max_val_rec

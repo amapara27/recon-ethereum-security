@@ -380,10 +380,6 @@ def erc20_feature_generator(df, address, sent_vocab_path, rec_vocab_path):
     return erc20_feature_df
     
 def get_feature_vector(address, sent_path, rec_path, master_column_list):
-    """
-    This function takes the LOADED master_column_list (a LIST),
-    not the filepath (a string).
-    """
     eth_df = fetch_eth_history(address)
     eth_features_df = eth_feature_generator(eth_df, address)
 
@@ -409,10 +405,6 @@ def load_token_vocabulary(filepath: str) -> set:
         return set()
 
 def load_master_column_list(filepath: str) -> list:
-    """
-    Loads a clean, one-column-per-line text file.
-    Preserves exact column names including trailing spaces.
-    """
     try:
         with open(filepath, 'r') as f:
             # Only strip newlines, preserve spaces in column names
