@@ -69,7 +69,7 @@ def main_loop():
                     if fraud_probability >= 0.3:
                         print(f"Fraud Detected (Probability: {fraud_probability})")
                     else:
-                        print(f"No Fraud Detected! (Probability: {1 - fraud_probability}")
+                        print(f"No Fraud Detected! (Probability: {1 - fraud_probability})")
 
                     processed_addr.add(from_addr)
 
