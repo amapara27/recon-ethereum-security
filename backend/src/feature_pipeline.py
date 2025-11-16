@@ -89,7 +89,7 @@ def eth_feature_generator(df, address):
         })
     
     # Cleaning
-    df = df[df['isError'] == '0']
+    df = df[df['isError'] == '0'].copy()
 
     df['timeStamp'] = pd.to_numeric(df['timeStamp'])
     df['timeStamp'] = pd.to_datetime(df['timeStamp'], unit='s')
@@ -232,14 +232,14 @@ def erc20_feature_generator(df, address, sent_vocab_path, rec_vocab_path):
         }
         
         return pd.DataFrame([final_features])
-
+    
     df['timeStamp'] = pd.to_numeric(df['timeStamp'], errors='coerce')
     df['timeStamp'] = pd.to_datetime(df['timeStamp'], unit='s')
 
     df['value'] = pd.to_numeric(df['value'], errors='coerce')
     df['tokenDecimal'] = pd.to_numeric(df['tokenDecimal'], errors='coerce')
     
-    df = df.dropna(subset=['value', 'tokenDecimal', 'timeStamp'])
+    df = df.dropna(subset=['value', 'tokenDecimal', 'timeStamp']).copy()
     
     df['tokenDecimal'] = df['tokenDecimal'].replace(0, 18) 
     df['real_value'] = df['value'] / (10**df['tokenDecimal'])

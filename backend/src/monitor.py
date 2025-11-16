@@ -22,33 +22,58 @@ MODEL_PATH = models_dir / "fraud_model.joblib"
 MASTER_COLUMN_PATH = lists_dir / "master_column_list.txt"
 MASTER_SENT_PATH = lists_dir / "master_sent.txt"
 MASTER_REC_PATH = lists_dir / "master_rec.txt"
-
-
-# Model Testing
-model = joblib.load(MODEL_PATH)
-
-
 MASTER_COLUMN_LIST = load_master_column_list(MASTER_COLUMN_PATH)
-test_address = "0x41cd1343c6e497c075b7ed1e9f003d65141833e2"
-final_vector_df = get_feature_vector(test_address, MASTER_SENT_PATH, MASTER_REC_PATH, MASTER_COLUMN_LIST)
 
-# Checking probability, if greater than 0.3 then warned a fraud
-fraud_probability = model.predict_proba(final_vector_df)[0][1]
-prediction = 1 if fraud_probability >= 0.3 else 0
-print(f"Fraud probability: {fraud_probability:.1%}")
-print(f"Prediction: {prediction}" )
-
+model = joblib.load(MODEL_PATH)
 w3 = Web3(Web3.HTTPProvider(rpc_url))
 
-processedAddresses = set()
+# # Model Testing
+# test_address = "0x41cd1343c6e497c075b7ed1e9f003d65141833e2"
+# final_vector_df = get_feature_vector(test_address, MASTER_SENT_PATH, MASTER_REC_PATH, MASTER_COLUMN_LIST)
 
-# Check  cnnection
-if w3.is_connected():
-    print("Success!")
+# # Checking probability, if greater than 0.3 then warned a fraud
+# fraud_probability = model.predict_proba(final_vector_df)[0][1]
+# prediction = 1 if fraud_probability >= 0.3 else 0
+# print(f"Fraud probability: {fraud_probability:.1%}")
+# print(f"Prediction: {prediction}" )
+
+
+processed_addr = set()
+
+def main_loop():
+    if not w3.is_connected():
+        print("Connection failed. Check your RPC_URL.")
+        return
     
-    # Get the latest block number
-    latest_block = w3.eth.block_number
-    print(f"The latest block number is: {latest_block}")
+    block_filter = w3.eth.filter('latest')
 
-else:
-    print("Connection failed. Check your RPC_URL.")
+    while True:
+        new_blocks = block_filter.get_new_entries()
+
+        for block_hash in new_blocks:
+            block = w3.eth.get_block(block_hash, full_transactions=True)
+
+            for tx in block.transactions:
+                from_addr = tx['from']
+
+                if from_addr not in processed_addr:
+                    print(f"Analyzing new address: {from_addr}")
+
+                    final_vector = get_feature_vector(from_addr, MASTER_SENT_PATH, MASTER_REC_PATH, MASTER_COLUMN_LIST)
+
+                    if final_vector.empty:
+                        continue
+
+                    fraud_probability = model.predict_proba(final_vector)[0][1]
+
+                    if fraud_probability >= 0.3:
+                        print(f"Fraud Detected (Probability: {fraud_probability})")
+                    else:
+                        print(f"No Fraud Detected! (Probability: {1 - fraud_probability}")
+
+                    processed_addr.add(from_addr)
+
+        time.sleep(1)
+
+main_loop()
+
