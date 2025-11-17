@@ -14,6 +14,7 @@ base_dir = Path(__file__).parent
 lists_dir = base_dir / "lists"   
 models_dir = base_dir.parent / "models"
 env_path = base_dir.parent.parent / ".env" 
+alerts_path = base_dir.parent / "alerts.db"
 
 load_dotenv(env_path)
 rpc_url = os.environ.get('ALCHEMY_RPC_URL')
@@ -27,18 +28,35 @@ MASTER_COLUMN_LIST = load_master_column_list(MASTER_COLUMN_PATH)
 model = joblib.load(MODEL_PATH)
 w3 = Web3(Web3.HTTPProvider(rpc_url))
 
-# # Model Testing
-# test_address = "0x41cd1343c6e497c075b7ed1e9f003d65141833e2"
-# final_vector_df = get_feature_vector(test_address, MASTER_SENT_PATH, MASTER_REC_PATH, MASTER_COLUMN_LIST)
-
-# # Checking probability, if greater than 0.3 then warned a fraud
-# fraud_probability = model.predict_proba(final_vector_df)[0][1]
-# prediction = 1 if fraud_probability >= 0.3 else 0
-# print(f"Fraud probability: {fraud_probability:.1%}")
-# print(f"Prediction: {prediction}" )
-
-
 processed_addr = set()
+
+def setup_databse():
+    conn = sqlite3.connect(alerts_path)
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS alerts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            "timestamp" DATETIME DEFAULT CURRENT_TIMESTAMP,
+            "address" TEXT NOT NULL,
+            "tx_hash" TEXT NOT NULL UNIQUE
+        )
+    ''')
+
+    conn.commit()
+    conn.close()
+
+def save_alert(address, tx_hash):
+    conn = sqlite3.connect(alerts_path)
+    cursor = conn.cursor()
+
+    data = (address, tx_hash)
+    sql = "INSERT OR IGNORE INTO alerts (address, tx_hash) VALUES (?, ?)"
+
+    cursor.execute(sql, data)
+
+    conn.commit()
+    conn.close()
 
 def main_loop():
     if not w3.is_connected():
@@ -48,32 +66,47 @@ def main_loop():
     block_filter = w3.eth.filter('latest')
 
     while True:
-        new_blocks = block_filter.get_new_entries()
+        try:
+            new_blocks = block_filter.get_new_entries()
+         
+            for block_hash in new_blocks:
+                try: 
+                    block = w3.eth.get_block(block_hash, full_transactions=True)
+                    print(f"📦 Processing Block: {block['number']} ({len(block.transactions)} txs)")
 
-        for block_hash in new_blocks:
-            block = w3.eth.get_block(block_hash, full_transactions=True)
+                    for tx in block.transactions:
+                        from_addr = tx['from']
 
-            for tx in block.transactions:
-                from_addr = tx['from']
+                        if from_addr not in processed_addr:
+                            print(f"Analyzing new address: {from_addr}")
 
-                if from_addr not in processed_addr:
-                    print(f"Analyzing new address: {from_addr}")
+                            final_vector = get_feature_vector(from_addr, MASTER_SENT_PATH, MASTER_REC_PATH, MASTER_COLUMN_LIST)
 
-                    final_vector = get_feature_vector(from_addr, MASTER_SENT_PATH, MASTER_REC_PATH, MASTER_COLUMN_LIST)
+                            if final_vector.empty:
+                                continue
 
-                    if final_vector.empty:
-                        continue
+                            fraud_probability = model.predict_proba(final_vector)[0][1]
 
-                    fraud_probability = model.predict_proba(final_vector)[0][1]
+                            if fraud_probability >= 0.3:
+                                save_alert(from_addr, tx['hash'].hex())
+                                print(f"🚨 FRAUD ALERT! (Probability: {fraud_probability})")
 
-                    if fraud_probability >= 0.3:
-                        print(f"Fraud Detected (Probability: {fraud_probability})")
-                    else:
-                        print(f"No Fraud Detected! (Probability: {1 - fraud_probability})")
+                            processed_addr.add(from_addr)
 
-                    processed_addr.add(from_addr)
+                except Exception as e:
+                    print(f"Error processing block: {e}")
+
+            time.sleep(5)
+
+        except Exception as e:
+            print(f"Loop error: {e}")
+            time.sleep(5)
 
         time.sleep(1)
 
-main_loop()
+def main():
+    setup_databse()
+    main_loop()
 
+if __name__ == "__main__":
+    main()

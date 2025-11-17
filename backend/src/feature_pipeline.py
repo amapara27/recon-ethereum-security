@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import requests
 import ast
 import pandas as pd
+import numpy as np
 
 from io import StringIO
 
@@ -392,6 +393,10 @@ def get_feature_vector(address, sent_path, rec_path, master_column_list):
         columns=master_column_list, 
         fill_value=0
     )
+
+    final_vector_df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    final_vector_df.fillna(0, inplace=True)
+    final_vector_df = final_vector_df.clip(lower=-1e30, upper=1e30)
 
     return final_vector_df
 
