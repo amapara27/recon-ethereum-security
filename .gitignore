@@ -1,4 +1,4 @@
 backend/.env
 backend/data/erc20_history.csv
 backend/data/eth_history.csv
-backend/src/alerts.db
+backend/alerts.db
