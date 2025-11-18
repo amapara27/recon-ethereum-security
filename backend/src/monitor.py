@@ -39,19 +39,20 @@ def setup_databse():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             "timestamp" DATETIME DEFAULT CURRENT_TIMESTAMP,
             "address" TEXT NOT NULL,
-            "tx_hash" TEXT NOT NULL UNIQUE
+            "tx_hash" TEXT NOT NULL UNIQUE,
+            "probability" DOUBLE NOT NULL
         )
     ''')
 
     conn.commit()
     conn.close()
 
-def save_alert(address, tx_hash):
+def save_alert(address, tx_hash, probability):
     conn = sqlite3.connect(alerts_path)
     cursor = conn.cursor()
 
-    data = (address, tx_hash)
-    sql = "INSERT OR IGNORE INTO alerts (address, tx_hash) VALUES (?, ?)"
+    data = (address, tx_hash, probability)
+    sql = "INSERT OR IGNORE INTO alerts (address, tx_hash, probability) VALUES (?, ?, ?)"
 
     cursor.execute(sql, data)
 
@@ -88,7 +89,7 @@ def main_loop():
                             fraud_probability = model.predict_proba(final_vector)[0][1]
 
                             if fraud_probability >= 0.3:
-                                save_alert(from_addr, tx['hash'].hex())
+                                save_alert(from_addr, tx['hash'].hex(), fraud_probability)
                                 print(f"🚨 FRAUD ALERT! (Probability: {fraud_probability})")
 
                             processed_addr.add(from_addr)
