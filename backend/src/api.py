@@ -1,7 +1,10 @@
+import sqlite3
+import uvicorn
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+
 from pathlib import Path
-import sqlite3
 from typing import List
 from pydantic import BaseModel
 
@@ -60,6 +63,8 @@ def get_latest_alerts():
     finally:
         conn.close()
 
-if __name__ == "__main__":
-    import uvicorn
+def main():
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+if __name__ == "__main__":
+    main()

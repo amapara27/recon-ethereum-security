@@ -1,0 +1,4 @@
+get http://localhost:8000/api/get-alerts
+
+post http://localhost:8000/api/get-alerts
+Content-Type: application/json
