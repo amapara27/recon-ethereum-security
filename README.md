@@ -75,7 +75,7 @@ This directory contains the entire Python-based backend.
 * **Blockchain Data:** Web3.py (for live blocks), Etherscan API (for historical data)
 * **Database:** SQLite
 * **Environment:** Conda
-* **API (Planned):** Flask, Flask-CORS
+* **API:** FastAPI
 
 ---
 
