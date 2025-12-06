@@ -47,7 +47,7 @@ def setup_databse():
     conn.commit()
     conn.close()
 
-def save_alert(address, tx_hash, probability):
+def log_transaction(address, tx_hash, probability):
     conn = sqlite3.connect(alerts_path)
     cursor = conn.cursor()
 
@@ -88,8 +88,9 @@ def main_loop():
 
                             fraud_probability = model.predict_proba(final_vector)[0][1]
 
+                            log_transaction(from_addr, tx['hash'].hex(), fraud_probability)
+
                             if fraud_probability >= 0.3:
-                                save_alert(from_addr, tx['hash'].hex(), fraud_probability)
                                 print(f"🚨 FRAUD ALERT! (Probability: {fraud_probability})")
 
                             processed_addr.add(from_addr)
