@@ -119,6 +119,9 @@ def main_loop():
 
                             processed_addr.add(from_addr)
 
+                            if len(processed_addr) > 10000:
+                                processed_addr.clear()
+
                 except Exception as e:
                     print(f"Error processing block: {e}")
 
