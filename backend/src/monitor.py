@@ -59,6 +59,21 @@ def log_transaction(address, tx_hash, probability):
     conn.commit()
     conn.close()
 
+def clean_database():
+    conn = sqlite3.connect(alerts_path)
+    cursor = conn.connect()
+
+    try:
+        cursor.execute('''
+            DELETE FROM alerts WHERE timestamp < datetime('now', '-1 day')
+        ''')
+
+    except Exception as e:
+        print(f"❌ Cleanup Error: {e}")
+        
+    conn.commit()
+    conn.close()
+
 def main_loop():
     if not w3.is_connected():
         print("Connection failed. Check your RPC_URL.")
@@ -66,7 +81,13 @@ def main_loop():
     
     block_filter = w3.eth.filter('latest')
 
+    last_clean = time.time()
+
     while True:
+        if time.time() - last_clean > 3600:
+            clean_database()
+            last_clean = time.time()
+
         try:
             new_blocks = block_filter.get_new_entries()
          

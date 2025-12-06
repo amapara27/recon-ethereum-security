@@ -34,13 +34,16 @@ def get_db_connection():
     return conn
 
 @app.get("/api/get-alerts", response_model=List[Alert])
-def get_latest_alerts():
+def get_latest_alerts(limit: int = 200):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
         entries = cursor.execute('''
-            SELECT * FROM alerts ORDER BY timestamp DESC LIMIT 50
-            ''')
+            SELECT * FROM alerts
+            WHERE timestamp >= datetime('now', '-24 hours')
+            ORDER BY timestamp DESC
+            LIMIT ?
+            ''', (limit,))
 
         alerts = []
 

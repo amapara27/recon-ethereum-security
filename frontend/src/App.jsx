@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import DisplayAlerts from './components/DisplayAlerts'
+import LiveTransactionScanner from './components/LiveTransactionScanner'
+import FraudAlerts from './components/FraudAlerts'
 import './App.css'
 
 function App() {
@@ -9,9 +10,9 @@ function App() {
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/get-alerts") 
+        const res = await fetch("http://localhost:8000/api/get-alerts?limit=500")
         const data = await res.json()
-        
+
         setAlerts(data)
         setServerStatus("Online 🟢")
       } catch (err) {
@@ -35,8 +36,9 @@ function App() {
         </span>
       </header>
 
-      <main>
-        <DisplayAlerts alerts={alerts} />
+      <main className="dashboard-grid">
+        <LiveTransactionScanner transactions={alerts} />
+        <FraudAlerts allTransactions={alerts} />
       </main>
     </div>
   )
