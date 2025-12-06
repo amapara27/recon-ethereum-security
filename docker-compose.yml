@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/alerts.db:/app/backend/alerts.db
+      - ./backend/models:/app/backend/models
+      - ./backend/src/lists:/app/backend/src/lists
+    env_file:
+      - ./backend/.env
+    restart: always

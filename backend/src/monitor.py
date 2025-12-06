@@ -10,11 +10,14 @@ from web3 import Web3
 from feature_pipeline import get_feature_vector, load_master_column_list
 
 # Loading files
-base_dir = Path(__file__).parent 
-lists_dir = base_dir / "lists"   
+base_dir = Path(__file__).parent
+lists_dir = base_dir / "lists"
 models_dir = base_dir.parent / "models"
-env_path = base_dir.parent.parent / ".env" 
+env_path = base_dir.parent.parent / ".env"
 alerts_path = base_dir.parent / "alerts.db"
+
+# Ensure the directory for alerts.db exists
+alerts_path.parent.mkdir(parents=True, exist_ok=True)
 
 load_dotenv(env_path)
 rpc_url = os.environ.get('ALCHEMY_RPC_URL')
@@ -61,7 +64,7 @@ def log_transaction(address, tx_hash, probability):
 
 def clean_database():
     conn = sqlite3.connect(alerts_path)
-    cursor = conn.connect()
+    cursor = conn.cursor()
 
     try:
         cursor.execute('''
@@ -70,7 +73,7 @@ def clean_database():
 
     except Exception as e:
         print(f"❌ Cleanup Error: {e}")
-        
+
     conn.commit()
     conn.close()
 

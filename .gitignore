@@ -4,6 +4,3 @@ backend/data/eth_history.csv
 backend/alerts.db
 
 frontend/node_modules
-
-Dockerfile
-docker-compose.yml
