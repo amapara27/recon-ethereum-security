@@ -1,4 +1,4 @@
-get http://localhost:8000/api/get-alerts
+get http://54.186.52.217:8000/api/get-alerts
 
-post http:/localhost:8000/api/get-alerts
+post http:/54.186.52.217:8000/api/get-alerts
 Content-Type: application/json

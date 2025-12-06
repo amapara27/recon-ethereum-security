@@ -6,6 +6,9 @@ The first completed module is a **Real-Time Fraud Detection Engine** that listen
 
 ---
 
+## Demo
+[![Watch the Demo](https://youtu.be/5ofxkW9tX0w)](https://youtu.be/5ofxkW9tX0w)
+
 ## 🌎 Real-World Applications
 
 A fully-featured Recon dashboard has direct applications for various users in the Web3 ecosystem:
