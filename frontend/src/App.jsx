@@ -10,7 +10,7 @@ function App() {
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        const res = await fetch("/api/get-alerts");
+        const res = await fetch("http://44.246.216.39:8000/api/get-alerts");
         const data = await res.json()
 
         setAlerts(data)

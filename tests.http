@@ -1,4 +1,4 @@
-get http://34.222.161.37:8000/api/get-alerts
+get http://44.246.216.39:8000/api/get-alerts
 
-post http://34.222.161.37:8000/api/get-alerts
+post http://44.246.216.39:8000/api/get-alerts
 Content-Type: application/json
