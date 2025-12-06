@@ -10,7 +10,8 @@ function App() {
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        const res = await fetch("http://54.186.52.217:8000/api/get-alerts");
+        const apiUrl = import.meta.env.VITE_API_URL || "http://54.186.52.217:8000";
+        const res = await fetch(`${apiUrl}/api/get-alerts`);
         const data = await res.json()
 
         setAlerts(data)
