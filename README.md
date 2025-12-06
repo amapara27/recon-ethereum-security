@@ -24,107 +24,85 @@ A fully-featured Recon dashboard has direct applications for various users in th
 
 ---
 
-## 🚀 Core Features (Current State)
+## 🚀 Core Features
 
-The foundational **Real-Time Fraud Detection Engine** is complete and functional:
-
-* **Live Transaction Monitoring:** Connects to an Ethereum node (via Infura) and listens for new blocks as they are mined.
-* **On-the-Fly Feature Engineering:** For any new address, this system fetches its entire transaction history (both ETH and ERC20) from Etherscan. It then instantly calculates a 770+ feature vector representing the address's complete financial behavior.
-* **AI-Powered Scoring:** Uses a pre-trained Random Forest model (trained on a labeled dataset with an F1-score of 0.92) to assign a fraud probability to every new transaction.
-* **Custom Thresholding:** Uses `predict_proba` to set a custom 30% probability threshold, prioritizing high recall to catch as many potential fraud cases as possible.
-* **Persistent Alerting:** All detected fraudulent transactions are logged to a local SQLite database for persistent storage.
-* **Efficient Caching:** A simple in-memory `set` is used to cache processed addresses, preventing redundant Etherscan API calls for the same address within a single session.
+* **Real-Time Fraud Detection:** Monitors live Ethereum blocks, analyzes transaction patterns using 770+ features, and flags suspicious activity with AI (Random Forest, F1: 0.92)
+* **Smart Feature Engineering:** Automatically fetches complete transaction history from Etherscan and calculates behavioral fingerprints on-the-fly
+* **Full-Stack Dashboard:** React frontend with FastAPI backend displaying live fraud alerts and transaction monitoring
+* **Production-Ready:** Dockerized deployment with persistent SQLite database and intelligent caching
 
 ---
 
-## 🛠️ How It Works (Architecture)
+## 🛠️ Architecture
 
-Recon is a full-stack application with a clear separation of concerns:
+**Backend (`backend/`):**
+* `monitor.py` - Listens to live Ethereum blocks via Web3.py, processes transactions through the ML pipeline, and stores alerts
+* `feature_pipeline.py` - Fetches transaction history from Etherscan and generates 770+ feature vectors for fraud prediction
+* `api.py` - FastAPI server exposing RESTful endpoints for frontend data access
+* `models/` - Pre-trained Random Forest classifier and feature templates
+* `data/` - Original training dataset
 
-### `backend/`
-This directory contains the entire Python-based backend.
-
-* **`src/monitor.py`:** The main "engine." This is a 24/7 script that:
-    1.  Loads the ML model and all feature templates.
-    2.  Connects to `web3.py` and listens for new blocks.
-    3.  For each new transaction, calls the `feature_pipeline`.
-    4.  Runs the model to get a fraud probability.
-    5.  Saves alerts to the database.
-
-* **`src/feature_pipeline.py`:** The "brain" of the operation. This script contains all the logic to:
-    1.  Fetch ETH history (`txlist`) and ERC20 history (`tokentx`) from the Etherscan API.
-    2.  Perform complex feature generation (e.g., `avg_min_between_sent_tnx`, `real_value` of tokens).
-    3.  Generate the 770+ feature one-hot encoded categorical vector.
-    4.  Return the final vector, perfectly ordered to match the model's training data.
-
-* **`src/api.py`:** (In Development) A Flask API server that provides a "bridge" between the database and the frontend. It will serve alerts as a JSON endpoint.
-
-* **`data/`:** Contains the original CSV dataset used for training.
-
-* **`models/`:** Contains the final trained `fraud_detector.joblib` model and the "master list" `.txt` files used as templates for the feature pipeline.
-
-### `frontend/`
-(In Development) A JavaScript-based dashboard that will visualize the data from the API.
+**Frontend (`frontend/`):**
+* React dashboard with live fraud alerts, transaction scanner, and responsive UI
 
 ---
 
 ## 🔧 Tech Stack
 
-* **Backend:** Python
+* **Backend:** Python, FastAPI
 * **Machine Learning:** Scikit-learn (Random Forest), Pandas, NumPy
-* **Blockchain Data:** Web3.py (for live blocks), Etherscan API (for historical data)
+* **Blockchain:** Web3.py, Etherscan API
+* **Frontend:** JavaScript, React
 * **Database:** SQLite
-* **Environment:** Conda
-* **API:** FastAPI
+* **Deployment:** Docker, Docker Compose
 
 ---
 
-## 🏁 How to Run (Current State)
+## 🏁 Quick Start
 
-Currently, the backend monitor can be run by itself to start populating the database.
+### Docker (Recommended)
+```bash
+# Clone and setup
+git clone https://github.com/your-username/recon.git
+cd recon
 
-### 1. Setup
+# Add API keys to backend/.env
+echo 'INFURA_RPC_URL="https://mainnet.infura.io/v3/YOUR_KEY"' > backend/.env
+echo 'ETHERSCAN_API_KEY="YOUR_KEY"' >> backend/.env
 
-1.  **Clone the repo:**
-    ```bash
-    git clone [https://github.com/your-username/recon.git](https://github.com/your-username/recon.git)
-    cd recon
-    ```
+# Run
+docker-compose up --build
+```
+Access at `http://localhost:5173` (frontend) and `http://localhost:8000` (API)
 
-2.  **Create & activate the Conda environment:**
-    ```bash
-    conda env create -f environment.yml
-    conda activate eth_fraud_detector
-    ```
+### Local Development
+```bash
+# Backend
+conda env create -f environment.yml && conda activate eth_fraud_detector
+cd backend && python src/monitor.py & python src/api.py
 
-3.  **Create your environment file:**
-    * Create a file named `.env` in the root of the project (`recon/.env`).
-    * Add your API keys:
-        ```
-        INFURA_RPC_URL="https"//mainnet.infura.io/v3/YOUR_KEY_HERE"
-        ETHERSCAN_API_KEY="YOUR_KEY_HERE"
-        ```
-
-### 2. Run the Monitor
-
-1.  Open your terminal and run the monitor script:
-    ```bash
-    python backend/src/monitor.py
-    ```
-2.  The script will initialize the database, connect to Ethereum, and begin listening for new blocks.
-3.  You will see alerts printed directly to your console and saved in the `backend/alerts.db` file.
+# Frontend (separate terminal)
+cd frontend && npm install && npm run dev
+```
 
 ---
 
-## 🗺️ Future Plans (Dashboard Roadmap)
+## 🗺️ Roadmap
 
-The existing backend is the foundation for the full Recon Security Dashboard. The planned roadmap includes:
+**✅ Completed**
+* Full-stack fraud detection system with React UI and FastAPI backend
+* Dockerized deployment with live transaction tracking and database persistence
 
-* **✅ Full-Stack API/UI:** Complete the `api.py` and build a JavaScript (React/Svelte/Vue) frontend to visualize the live fraud alerts.
-* **📈 Wallet Investigator:** A search-and-report tool to analyze any address and visualize its transaction graph (AML/fund tracing).
-* **🛡️ AI Smart Contract Auditor:** A new tab where users can paste Solidity code to be scanned for common vulnerabilities (re-entrancy, integer overflows) by an AI model.
-* **🍯 Honeypot/Scam Token Detector:** A tool to analyze ERC20 token contracts for signs of malicious code (e.g., un-sellable tokens) or market manipulation (e.g., wash trading).
-* **🌐 Phishing/Scam Domain Monitor:** Integrate off-chain data (like new domain registrations) to flag "typosquatted" phishing sites (e.g., "uniswap-claim.xyz").
+**🚧 In Progress**
+* AWS Cloud Deployment (EC2, RDS, CloudWatch, Load Balancing)
+
+**📋 Planned**
+* Wallet Investigator - Transaction graph visualization and fund tracing
+* AI Smart Contract Auditor - Vulnerability detection for Solidity code
+* Honeypot/Scam Token Detector - Malicious ERC20 contract analysis
+* Phishing Domain Monitor - Real-time scam website detection
+* Analytics Dashboard - Historical trends and fraud pattern analysis
+* Alert System - Configurable notifications for high-risk activity
 
 ---
 
