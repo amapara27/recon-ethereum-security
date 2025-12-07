@@ -7,7 +7,7 @@ The first completed module is a **Real-Time Fraud Detection Engine** that listen
 ---
 
 ## Demo
-[![Watch the Demo](https://youtu.be/5ofxkW9tX0w)](https://youtu.be/5ofxkW9tX0w)
+[![Watch the Demo](https://img.youtube.com/vi/5ofxkW9tX0w/0.jpg)](https://youtu.be/5ofxkW9tX0w)
 
 ## 🌎 Real-World Applications
 
