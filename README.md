@@ -1,4 +1,4 @@
-# Recon: Ethereum Fraud Detection System
+# Recon: Ethereum Blockchain Dashboard
 
 Recon is a **Real-Time Fraud Detection Engine** that listens to live Ethereum blocks, analyzes the behavioral "fingerprint" of transaction senders, and flags high-risk activity using machine learning. Built with Python, FastAPI, and React, it provides a production-ready system for monitoring Ethereum transactions in real-time.
 
