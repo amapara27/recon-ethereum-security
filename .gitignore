@@ -6,3 +6,5 @@ backend/alerts.db
 frontend/node_modules
 frontend/.env.local
 frontend/dist
+
+.vscode
