@@ -32,7 +32,7 @@ def analyze_smart_contract(source_code):
     Just return the raw JSON string with the following structure:
     {
         "contract_name": "Name of the main contract",
-        "risk_score": (integer 0-100, where 100 is perfectly safe, 0 is dangerous),
+        "safe_score": (integer 0-100, where 100 is perfectly safe, 0 is dangerous),
         "risk_level": "Low" | "Medium" | "High" | "Critical",
         "vulnerabilities": [
             {
@@ -80,7 +80,7 @@ def main():
     honeypot_address = "0x34C6211621f2763c60Eb007dC2aE91090A2d22f6"
     uniswap_address = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"
 
-    source_code_string = fetch_source_code(uniswap_address)
+    source_code_string = fetch_source_code(honeypot_address)
 
     print(analyze_smart_contract(source_code_string))
 
