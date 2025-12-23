@@ -8,10 +8,16 @@ from pathlib import Path
 from typing import List
 from pydantic import BaseModel
 
+from contract_fetcher import fetch_source_code
+from contract_analyzer import analyze_smart_contract
+
 base_dir = Path(__file__).parent
 alerts_path = base_dir.parent / "alerts.db"
 
 app = FastAPI()
+
+class ContractRequest(BaseModel):
+    address: str
 
 app.add_middleware(
     CORSMiddleware,
@@ -65,6 +71,17 @@ def get_latest_alerts(limit: int = 200):
 
     finally:
         conn.close()
+
+@app.post("/api/contract-analyzer")
+async def analyze_contract(request : ContractRequest):
+    target_address = request.address
+
+    source_code = fetch_source_code(target_address)
+
+    if source_code == "" or "Unknown" in source_code:
+        raise HTTPException(status_code=404, detail="Contract Source Code Not Found")
+
+    return analyze_smart_contract(source_code)
 
 def main():
     uvicorn.run(app, host="0.0.0.0", port=8000)
