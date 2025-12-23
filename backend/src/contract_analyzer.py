@@ -77,8 +77,10 @@ def analyze_smart_contract(source_code):
         }
     
 def main():
-    address = "0x34C6211621f2763c60Eb007dC2aE91090A2d22f6"
-    source_code_string = fetch_source_code(address)
+    honeypot_address = "0x34C6211621f2763c60Eb007dC2aE91090A2d22f6"
+    uniswap_address = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"
+
+    source_code_string = fetch_source_code(uniswap_address)
 
     print(analyze_smart_contract(source_code_string))
 
