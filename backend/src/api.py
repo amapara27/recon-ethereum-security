@@ -13,6 +13,7 @@ from contract_analyzer import analyze_smart_contract
 
 base_dir = Path(__file__).parent
 alerts_path = base_dir.parent / "alerts.db"
+audits_path = base_dir.parent / "contract_cache.db"
 
 app = FastAPI()
 
@@ -81,7 +82,7 @@ async def analyze_contract(request : ContractRequest):
     if source_code == "" or "Unknown" in source_code:
         raise HTTPException(status_code=404, detail="Contract Source Code Not Found")
 
-    return analyze_smart_contract(source_code)
+    return analyze_smart_contract(source_code, contract_address=target_address, use_cache=True)
 
 def main():
     uvicorn.run(app, host="0.0.0.0", port=8000)
