@@ -6,10 +6,34 @@ function SmartContractAnalysis() {
   const [analysis, setAnalysis] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [loadingText, setLoadingText] = useState('Initializing analysis...')
 
   useEffect(() => {
     console.log('SmartContractAnalysis mounted. API base URL:', api.defaults.baseURL)
   }, [])
+
+  useEffect(() => {
+    if (!loading) return
+
+    const messages = [
+      "🔗 Connecting to Ethereum Network...",
+      "📜 Fetching Contract Source Code...",
+      "🔍 Scanning for Vulnerabilities...",
+      "🧠 AI Agent Analyzing Security Patterns...",
+      "⚡ Checking for Reentrancy Attacks...",
+      "🛡️ Generating Security Report..."
+    ]
+
+    let i = 0
+    setLoadingText(messages[0])
+
+    const interval = setInterval(() => {
+      i = (i + 1) % messages.length
+      setLoadingText(messages[i])
+    }, 900)
+
+    return () => clearInterval(interval)
+  }, [loading])
 
   const analyzeContract = async () => {
     if (!contractAddress.trim()) {
@@ -26,12 +50,17 @@ function SmartContractAnalysis() {
     setError('')
     setAnalysis(null)
 
+    const MIN_LOADING_TIME = 3000;
+    const timerPromise = new Promise(resolve => setTimeout(resolve, MIN_LOADING_TIME));
+
+    const apiPromise = api.post('/api/contract-analyzer', {
+      address: contractAddress.trim()
+    });
+
     try {
-      const response = await api.post('/api/contract-analyzer', {
-        address: contractAddress.trim()
-      })
-      console.log('Analysis response:', response.data)
-      setAnalysis(response.data)
+      const [_, response] = await Promise.all([timerPromise, apiPromise]);
+      console.log('Analysis response:', response.data);
+      setAnalysis(response.data);
     } catch (err) {
       console.error('Analysis error:', err)
       console.error('Error response:', err.response)
@@ -111,7 +140,7 @@ function SmartContractAnalysis() {
       {loading && (
         <div className="empty-state">
           <div className="loading-spinner"></div>
-          <p>Analyzing smart contract security...</p>
+          <p>{loadingText}</p>
         </div>
       )}
 
