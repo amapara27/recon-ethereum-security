@@ -9,3 +9,4 @@ frontend/.env.local
 frontend/dist
 
 .vscode
+.claude

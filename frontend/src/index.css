@@ -1,8 +1,8 @@
 /* ============================================
-   GOOGLE FONTS IMPORT
+   GOOGLE FONTS IMPORT - DEFI GRADE
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
 
 /* ============================================
    MODERN CSS RESET
@@ -21,6 +21,7 @@ html {
   -webkit-text-size-adjust: 100%;
   -moz-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
 }
 
 body {
@@ -65,31 +66,43 @@ ul, ol {
    ============================================ */
 
 :root {
-  /* === DEEP SPACE THEME === */
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #121212;
-  --bg-tertiary: #1a1a1a;
-  --surface-color: #1c1c1c;
-  --surface-elevated: #252525;
+  /* === DEFI TIER-1 DESIGN SYSTEM === */
 
-  /* === CARD & SURFACE VARIABLES === */
-  --card-bg: rgba(28, 28, 28, 0.6);
-  --card-bg-hover: rgba(35, 35, 35, 0.8);
-  --card-border: rgba(255, 255, 255, 0.06);
+  /* BACKGROUNDS - Deep Space */
+  --bg-deep: #0d1117;
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-tertiary: #1c2128;
+  --surface-color: rgba(255, 255, 255, 0.03);
+  --surface-elevated: rgba(255, 255, 255, 0.06);
+
+  /* GLASSMORPHISM PANELS */
+  --glass-panel: rgba(255, 255, 255, 0.03);
+  --glass-panel-hover: rgba(255, 255, 255, 0.06);
+  --glass-panel-active: rgba(255, 255, 255, 0.08);
+  --glass-blur: 16px;
+  --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+
+  /* CARD SURFACES */
+  --card-bg: rgba(255, 255, 255, 0.03);
+  --card-bg-hover: rgba(255, 255, 255, 0.06);
+  --card-border: rgba(255, 255, 255, 0.08);
   --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 
-  /* === GLASSMORPHISM VARIABLES === */
-  --glass-bg: rgba(20, 20, 20, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-blur: 20px;
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  /* BORDERS */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(255, 255, 255, 0.15);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.15);
 
-  /* === ENHANCED GLASS VARIANTS === */
-  --glass-bg-hover: rgba(30, 30, 30, 0.8);
-  --glass-bg-active: rgba(40, 40, 40, 0.85);
-  --glass-border-hover: rgba(255, 255, 255, 0.1);
+  /* SIGNAL COLORS - Data Visualization */
+  --signal-safe: #00ffbd;      /* Neon Mint */
+  --signal-risk: #ff4757;      /* Hot Coral */
+  --signal-warn: #ffa502;      /* Electric Amber */
+  --signal-action: #5865F2;    /* Blurple */
+  --signal-hover: #8c7ae6;     /* Electric Violet */
 
-  /* === NEON & SIGNAL PALETTE === */
+  /* Legacy support - map to signals */
   --neon-mint: #00ffbd;
   --neon-mint-dim: rgba(0, 255, 189, 0.15);
   --neon-mint-glow: rgba(0, 255, 189, 0.4);
@@ -110,9 +123,9 @@ ul, ol {
   --electric-violet-dim: rgba(140, 122, 230, 0.15);
   --electric-violet-glow: rgba(140, 122, 230, 0.4);
 
-  /* === TYPOGRAPHY === */
-  --font-primary: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
+  /* TYPOGRAPHY - DeFi Grade */
+  --font-primary: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', 'Consolas', monospace;
 
   --font-weight-light: 300;
   --font-weight-regular: 400;
@@ -120,30 +133,31 @@ ul, ol {
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
-  /* === TEXT COLORS === */
-  --text-primary: rgba(255, 255, 255, 0.95);
-  --text-secondary: rgba(255, 255, 255, 0.65);
-  --text-tertiary: rgba(255, 255, 255, 0.45);
+  /* TEXT HIERARCHY */
+  --text-primary: #f0f6fc;
+  --text-secondary: #8b949e;
+  --text-tertiary: #6e7681;
   --text-disabled: rgba(255, 255, 255, 0.25);
+  --text-mono: #d2a8ff;
 
-  /* === SEMANTIC COLORS === */
-  --success: var(--neon-mint);
+  /* SEMANTIC COLORS */
+  --success: var(--signal-safe);
   --success-dim: var(--neon-mint-dim);
   --success-glow: var(--neon-mint-glow);
 
-  --danger: var(--hot-coral);
+  --danger: var(--signal-risk);
   --danger-dim: var(--hot-coral-dim);
   --danger-glow: var(--hot-coral-glow);
 
-  --warning: var(--electric-amber);
+  --warning: var(--signal-warn);
   --warning-dim: var(--electric-amber-dim);
   --warning-glow: var(--electric-amber-glow);
 
-  --primary: var(--blurple);
+  --primary: var(--signal-action);
   --primary-dim: var(--blurple-dim);
   --primary-glow: var(--blurple-glow);
 
-  /* === SPACING SYSTEM === */
+  /* SPACING SYSTEM */
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
   --space-md: 0.75rem;
@@ -152,7 +166,7 @@ ul, ol {
   --space-2xl: 2rem;
   --space-3xl: 3rem;
 
-  /* === BORDER RADIUS === */
+  /* BORDER RADIUS */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
@@ -160,12 +174,12 @@ ul, ol {
   --radius-2xl: 24px;
   --radius-full: 9999px;
 
-  /* === TRANSITIONS === */
+  /* TRANSITIONS */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* === Z-INDEX SYSTEM === */
+  /* Z-INDEX SYSTEM */
   --z-base: 1;
   --z-dropdown: 100;
   --z-sticky: 200;
@@ -182,7 +196,7 @@ body {
   font-family: var(--font-primary);
   font-weight: var(--font-weight-regular);
   color: var(--text-primary);
-  background: var(--bg-primary);
+  background: radial-gradient(circle at 50% 0%, var(--bg-secondary), var(--bg-deep));
   background-attachment: fixed;
 }
 
