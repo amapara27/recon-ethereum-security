@@ -81,7 +81,7 @@ def main_loop():
     if not w3.is_connected():
         print("Connection failed. Check your RPC_URL.")
         return
-
+    
     block_filter = w3.eth.filter('latest')
 
     last_clean = time.time()
