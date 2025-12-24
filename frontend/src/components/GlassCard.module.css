@@ -1,8 +1,3 @@
-/* ============================================
-   GLASSMORPHISM CARD COMPONENT
-   High-end DeFi Protocol Design
-   ============================================ */
-
 .glassCard {
   position: relative;
   background: var(--glass-bg);
