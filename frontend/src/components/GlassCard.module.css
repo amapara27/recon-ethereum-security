@@ -1,0 +1,110 @@
+/* ============================================
+   GLASSMORPHISM CARD COMPONENT
+   High-end DeFi Protocol Design
+   ============================================ */
+
+.glassCard {
+  position: relative;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  padding: var(--space-lg);
+  transition: all var(--transition-base);
+  overflow: hidden;
+}
+
+.glassCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  opacity: 0.5;
+}
+
+.glassCard:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  transform: translateY(-2px);
+  box-shadow:
+    var(--glass-shadow),
+    0 8px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* === CARD VARIANTS === */
+.glassCard.interactive {
+  cursor: pointer;
+}
+
+.glassCard.interactive:active {
+  transform: translateY(0);
+}
+
+.glassCard.noPadding {
+  padding: 0;
+}
+
+.glassCard.compact {
+  padding: var(--space-md);
+}
+
+.glassCard.spacious {
+  padding: var(--space-xl);
+}
+
+/* === GLOW EFFECTS === */
+.glassCard.glowPrimary {
+  box-shadow:
+    var(--glass-shadow),
+    0 0 20px var(--primary-glow);
+}
+
+.glassCard.glowSuccess {
+  box-shadow:
+    var(--glass-shadow),
+    0 0 20px var(--success-glow);
+}
+
+.glassCard.glowDanger {
+  box-shadow:
+    var(--glass-shadow),
+    0 0 20px var(--danger-glow);
+}
+
+.glassCard.glowWarning {
+  box-shadow:
+    var(--glass-shadow),
+    0 0 20px var(--warning-glow);
+}
+
+/* === COLORED BORDERS === */
+.glassCard.borderPrimary {
+  border-color: var(--primary);
+}
+
+.glassCard.borderSuccess {
+  border-color: var(--success);
+}
+
+.glassCard.borderDanger {
+  border-color: var(--danger);
+}
+
+.glassCard.borderWarning {
+  border-color: var(--warning);
+}
+
+/* === ANIMATION === */
+.glassCard.animated {
+  animation: fadeIn var(--transition-slow) ease-out;
+}

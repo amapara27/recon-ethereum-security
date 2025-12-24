@@ -35,7 +35,7 @@ function App() {
   return (
     <div className="app-container">
       <header className="dashboard-header">
-        <h1>🛡️ Recon Security Dashboard</h1>
+        <h1>Recon Ethereum Dashboard</h1>
         <nav className="nav-buttons">
           <button
             className={`nav-btn ${currentPage === 'transaction-scanner' ? 'active' : ''}`}
@@ -57,7 +57,7 @@ function App() {
           </button>
         </nav>
         <span className={`status-badge ${serverStatus.includes("Online") ? "status-ok" : "status-err"}`}>
-          {serverStatus}
+          {serverStatus.replace(/[🟢🔴]/g, '').trim()}
         </span>
       </header>
 
