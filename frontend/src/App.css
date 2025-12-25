@@ -803,11 +803,11 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
-  padding: var(--space-xl);
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
   background: rgba(17, 24, 39, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
+  border-radius: 10px;
   transition: all var(--transition-base);
 }
 
@@ -831,11 +831,19 @@
   background: rgba(255, 71, 87, 0.05);
 }
 
-/* Risk Badge Row */
-.scanner-tx-risk {
+/* Transaction Header */
+.scanner-tx-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-md);
+}
+
+/* Risk Badge */
+.scanner-tx-risk {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
 }
 
 .scanner-risk-badge {
@@ -874,33 +882,12 @@
   color: var(--text-tertiary);
 }
 
-/* Address Flow */
-.scanner-tx-flow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-}
-
+/* Address */
 .scanner-address {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  flex: 1;
+  gap: var(--space-sm);
   min-width: 0;
-}
-
-.scanner-address-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.scanner-address-label {
-  font-size: 0.625rem;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
 }
 
 .scanner-address-hash {
@@ -909,15 +896,6 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.scanner-flow-arrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: var(--primary);
-  opacity: 0.6;
 }
 
 /* Transaction Details */

@@ -19,30 +19,12 @@ function ClearIcon() {
   )
 }
 
-function ArrowRightIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="5" y1="12" x2="19" y2="12" />
-      <polyline points="12 5 19 12 12 19" />
-    </svg>
-  )
-}
-
 function ExternalLinkIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
       <polyline points="15 3 21 3 21 9" />
       <line x1="10" y1="14" x2="21" y2="3" />
-    </svg>
-  )
-}
-
-function EthIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-      <path d="M12 1.5L5.5 12.25L12 16.5L18.5 12.25L12 1.5Z" fill="currentColor" opacity="0.6" />
-      <path d="M12 16.5L5.5 12.25L12 22.5L18.5 12.25L12 16.5Z" fill="currentColor" />
     </svg>
   )
 }
@@ -189,76 +171,44 @@ function LiveTransactionScanner({ transactions }) {
           {filteredTransactions.map((tx) => {
             const risk = getRiskLevel(tx.probability)
             const fromAddress = tx.address || '0x0000000000000000000000000000000000000000'
-            const toAddress = tx.to_address || '0x0000000000000000000000000000000000000000'
 
             return (
               <div key={tx.tx_hash} className={`scanner-tx-card ${risk.class}`}>
-                {/* Risk Badge */}
-                <div className="scanner-tx-risk">
-                  <span className={`scanner-risk-badge ${risk.class}`}>
-                    {risk.level}
-                  </span>
-                  <span className="scanner-risk-score">
-                    {(tx.probability * 100).toFixed(1)}%
-                  </span>
-                </div>
-
-                {/* Address Flow */}
-                <div className="scanner-tx-flow">
-                  <div className="scanner-address from">
-                    <AddressAvatar address={fromAddress} size={36} />
-                    <div className="scanner-address-info">
-                      <span className="scanner-address-label">From</span>
-                      <span className="scanner-address-hash font-mono">
-                        {fromAddress.slice(0, 6)}...{fromAddress.slice(-4)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="scanner-flow-arrow">
-                    <ArrowRightIcon />
-                  </div>
-
-                  <div className="scanner-address to">
-                    <AddressAvatar address={toAddress} size={36} />
-                    <div className="scanner-address-info">
-                      <span className="scanner-address-label">To</span>
-                      <span className="scanner-address-hash font-mono">
-                        {toAddress.slice(0, 6)}...{toAddress.slice(-4)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Transaction Details */}
-                <div className="scanner-tx-details">
-                  {/* Value */}
-                  <div className="scanner-tx-value">
-                    <EthIcon />
-                    <span className="scanner-value-amount">
-                      {tx.value ? parseFloat(tx.value).toFixed(4) : '0.0000'}
+                {/* Header: Address + Risk */}
+                <div className="scanner-tx-header">
+                  <div className="scanner-address">
+                    <AddressAvatar address={fromAddress} size={32} />
+                    <span className="scanner-address-hash font-mono">
+                      {fromAddress.slice(0, 6)}...{fromAddress.slice(-4)}
                     </span>
-                    <span className="scanner-value-label">ETH</span>
                   </div>
-
-                  {/* Gas Progress */}
-                  {tx.gas_used && tx.gas_limit && (
-                    <div className="scanner-gas-info">
-                      <div className="scanner-gas-header">
-                        <span className="scanner-gas-label">Gas</span>
-                        <span className="scanner-gas-value">
-                          {((tx.gas_used / tx.gas_limit) * 100).toFixed(0)}%
-                        </span>
-                      </div>
-                      <div className="scanner-gas-bar">
-                        <div
-                          className="scanner-gas-fill"
-                          style={{ width: `${Math.min((tx.gas_used / tx.gas_limit) * 100, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                  <div className="scanner-tx-risk">
+                    <span className={`scanner-risk-badge ${risk.class}`}>
+                      {risk.level}
+                    </span>
+                    <span className="scanner-risk-score">
+                      {(tx.probability * 100).toFixed(1)}%
+                    </span>
+                  </div>
                 </div>
+
+                {/* Gas Progress */}
+                {tx.gas_used && tx.gas_limit && (
+                  <div className="scanner-gas-info">
+                    <div className="scanner-gas-header">
+                      <span className="scanner-gas-label">Gas</span>
+                      <span className="scanner-gas-value">
+                        {((tx.gas_used / tx.gas_limit) * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="scanner-gas-bar">
+                      <div
+                        className="scanner-gas-fill"
+                        style={{ width: `${Math.min((tx.gas_used / tx.gas_limit) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {/* Footer: Meta + Actions */}
                 <div className="scanner-tx-footer">
