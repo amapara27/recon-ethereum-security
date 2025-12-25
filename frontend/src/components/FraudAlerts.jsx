@@ -56,7 +56,7 @@ function FraudAlerts({ allTransactions }) {
           <tbody>
             {fraudulentTx.slice(0, displayCount).map((alert) => (
               <tr key={alert.tx_hash}>
-                <td>{new Date(alert.timestamp).toLocaleString()}</td>
+                <td>{new Date(alert.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}</td>
                 <td>
                   <span className={`badge ${alert.probability > 0.7 ? 'bg-danger' : 'bg-warning'}`}>
                     {(alert.probability * 100).toFixed(1)}%

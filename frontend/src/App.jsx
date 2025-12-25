@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import LandingPage from './components/LandingPage'
 import LiveTransactionScanner from './components/LiveTransactionScanner'
 import FraudAlerts from './components/FraudAlerts'
 import SmartContractAnalysis from './components/SmartContractAnalysis'
@@ -9,6 +10,7 @@ function App() {
   const [alerts, setAlerts] = useState([])
   const [serverStatus, setServerStatus] = useState("Checking...")
   const [currentPage, setCurrentPage] = useState('transaction-scanner')
+  const [showLanding, setShowLanding] = useState(true)
 
   useEffect(() => {
     const fetchAlerts = async () => {
@@ -31,6 +33,10 @@ function App() {
     return () => clearInterval(intervalId)
   }, [])
 
+
+  if (showLanding) {
+    return <LandingPage onEnter={() => setShowLanding(false)} />
+  }
 
   return (
     <div className="app-container">

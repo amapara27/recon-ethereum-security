@@ -4,6 +4,143 @@
    NO BOOTSTRAP - Custom Glassmorphism Design
    ============================================ */
 
+/* ============================================
+   LANDING PAGE
+   ============================================ */
+
+.landing-container {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+  opacity: 0.15;
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
+.landing-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3xl);
+  z-index: var(--z-base);
+  animation: fadeIn 1s ease-out;
+}
+
+.logo-container {
+  position: relative;
+}
+
+.recon-logo {
+  width: 200px;
+  height: 200px;
+  filter: drop-shadow(0 0 30px var(--primary-glow));
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.landing-title {
+  font-size: 5rem;
+  font-weight: var(--font-weight-bold);
+  background: linear-gradient(135deg, #5865F2 0%, #00ffbd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.03em;
+  margin: 0;
+  text-transform: uppercase;
+  text-shadow: 0 0 60px var(--primary-glow);
+}
+
+.landing-subtitle {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.enter-dashboard-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: 1.25rem 3rem;
+  background: var(--glass-panel);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-xl);
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  overflow: hidden;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-top: var(--space-2xl);
+}
+
+.enter-dashboard-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--primary-glow), transparent);
+  transition: left var(--transition-slow);
+}
+
+.enter-dashboard-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px var(--primary-glow);
+  border-color: var(--signal-hover);
+  background: var(--glass-panel-hover);
+}
+
+.enter-dashboard-btn:hover::before {
+  left: 100%;
+}
+
+.enter-dashboard-btn:active {
+  transform: translateY(-2px);
+}
+
+.arrow-icon {
+  width: 24px;
+  height: 24px;
+  transition: transform var(--transition-base);
+}
+
+.enter-dashboard-btn:hover .arrow-icon {
+  transform: translateX(6px);
+}
+
 /* === APP CONTAINER === */
 .app-container {
   min-height: 100vh;
@@ -185,6 +322,31 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.8125rem;
+  table-layout: fixed;
+}
+
+.scanner-table th:nth-child(1),
+.alert-table th:nth-child(1) {
+  width: 12%;
+}
+
+.scanner-table th:nth-child(2) {
+  width: 15%;
+}
+
+.scanner-table th:nth-child(3),
+.alert-table th:nth-child(3) {
+  width: 35%;
+}
+
+.scanner-table th:nth-child(4),
+.alert-table th:nth-child(2) {
+  width: 18%;
+}
+
+.scanner-table th:nth-child(5),
+.alert-table th:nth-child(4) {
+  width: 20%;
 }
 
 .scanner-table thead,
@@ -198,7 +360,7 @@
 .scanner-table th,
 .alert-table th {
   padding: var(--space-lg) var(--space-xl);
-  text-align: left;
+  text-align: center;
   font-weight: var(--font-weight-semibold);
   color: var(--text-tertiary);
   font-size: 0.6875rem;
@@ -216,6 +378,7 @@
   transition: all var(--transition-fast);
   font-variant-numeric: tabular-nums;
   font-size: 0.875rem;
+  text-align: center;
 }
 
 .scanner-table tbody tr,
@@ -671,6 +834,26 @@
 }
 
 @media (max-width: 768px) {
+  .landing-title {
+    font-size: 3rem;
+  }
+
+  .landing-subtitle {
+    font-size: 1rem;
+    text-align: center;
+    padding: 0 var(--space-xl);
+  }
+
+  .recon-logo {
+    width: 150px;
+    height: 150px;
+  }
+
+  .enter-dashboard-btn {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+  }
+
   .dashboard-header {
     display: flex;
     flex-direction: column;

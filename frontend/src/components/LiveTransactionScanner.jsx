@@ -24,7 +24,7 @@ function LiveTransactionScanner({ transactions }) {
               const isFraud = tx.probability >= 0.3;
               return (
                 <tr key={tx.tx_hash} className={isFraud ? 'fraud-row' : 'clean-row'}>
-                  <td>{new Date(tx.timestamp).toLocaleTimeString()}</td>
+                  <td>{new Date(tx.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}</td>
                   <td>
                     <span className={`status-badge ${isFraud ? 'status-fraud' : 'status-clean'}`}>
                       {isFraud ? 'FRAUD' : 'CLEAN'}

@@ -105,7 +105,7 @@ function SmartContractAnalysis() {
 
   return (
     <div className="card" style={{ gridColumn: '1 / -1' }}>
-      <h3>Smart Contract Analysis</h3>
+      <h3>AI Smart Contract Analysis</h3>
 
       <div className="contract-analysis-container">
         <div className="contract-input-group">
