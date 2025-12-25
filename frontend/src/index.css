@@ -2,7 +2,7 @@
    GOOGLE FONTS IMPORT - DEFI GRADE
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
 
 /* ============================================
    MODERN CSS RESET
@@ -69,43 +69,49 @@ ul, ol {
   /* === DEFI TIER-1 DESIGN SYSTEM === */
 
   /* BACKGROUNDS - Deep Space */
-  --bg-deep: #0d1117;
-  --bg-primary: #0d1117;
-  --bg-secondary: #161b22;
-  --bg-tertiary: #1c2128;
-  --surface-color: rgba(255, 255, 255, 0.03);
-  --surface-elevated: rgba(255, 255, 255, 0.06);
+  --bg-deep: #0a0e17;
+  --bg-primary: #0a0e17;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1a1f2e;
+  --surface-color: rgba(17, 24, 39, 0.6);
+  --surface-elevated: rgba(26, 31, 46, 0.8);
 
   /* GLASSMORPHISM PANELS */
-  --glass-panel: rgba(255, 255, 255, 0.03);
-  --glass-panel-hover: rgba(255, 255, 255, 0.06);
-  --glass-panel-active: rgba(255, 255, 255, 0.08);
-  --glass-blur: 16px;
-  --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  --glass-panel: rgba(17, 24, 39, 0.8);
+  --glass-panel-hover: rgba(26, 31, 46, 0.85);
+  --glass-panel-active: rgba(26, 31, 46, 0.9);
+  --glass-blur: 20px;
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 
   /* CARD SURFACES */
-  --card-bg: rgba(255, 255, 255, 0.03);
-  --card-bg-hover: rgba(255, 255, 255, 0.06);
-  --card-border: rgba(255, 255, 255, 0.08);
+  --card-bg: rgba(17, 24, 39, 0.8);
+  --card-bg-hover: rgba(26, 31, 46, 0.85);
+  --card-border: rgba(255, 255, 255, 0.1);
   --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 
   /* BORDERS */
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-highlight: rgba(255, 255, 255, 0.15);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-hover: rgba(255, 255, 255, 0.15);
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --border-highlight: rgba(255, 255, 255, 0.2);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border-hover: rgba(255, 255, 255, 0.2);
+
+  /* GRADIENT BORDERS - Accent Colors */
+  --border-gradient-cyan: linear-gradient(135deg, rgba(0, 212, 255, 0.5), rgba(0, 212, 255, 0.1));
+  --border-gradient-success: linear-gradient(135deg, rgba(0, 255, 136, 0.5), rgba(0, 255, 136, 0.1));
+  --border-gradient-danger: linear-gradient(135deg, rgba(255, 71, 87, 0.5), rgba(255, 71, 87, 0.1));
+  --border-gradient-warning: linear-gradient(135deg, rgba(255, 165, 2, 0.5), rgba(255, 165, 2, 0.1));
 
   /* SIGNAL COLORS - Data Visualization */
-  --signal-safe: #00ffbd;      /* Neon Mint */
-  --signal-risk: #ff4757;      /* Hot Coral */
-  --signal-warn: #ffa502;      /* Electric Amber */
-  --signal-action: #5865F2;    /* Blurple */
-  --signal-hover: #8c7ae6;     /* Electric Violet */
+  --signal-safe: #00ff88;      /* Neon Green - Success/Safe */
+  --signal-risk: #ff4757;      /* Hot Coral - Danger/Alerts */
+  --signal-warn: #ffa502;      /* Electric Amber - Warning */
+  --signal-action: #00d4ff;    /* Cyan Primary - Actions */
+  --signal-hover: #33ddff;     /* Cyan Light - Hover State */
 
   /* Legacy support - map to signals */
-  --neon-mint: #00ffbd;
-  --neon-mint-dim: rgba(0, 255, 189, 0.15);
-  --neon-mint-glow: rgba(0, 255, 189, 0.4);
+  --neon-mint: #00ff88;
+  --neon-mint-dim: rgba(0, 255, 136, 0.15);
+  --neon-mint-glow: rgba(0, 255, 136, 0.4);
 
   --hot-coral: #ff4757;
   --hot-coral-dim: rgba(255, 71, 87, 0.15);
@@ -115,16 +121,16 @@ ul, ol {
   --electric-amber-dim: rgba(255, 165, 2, 0.15);
   --electric-amber-glow: rgba(255, 165, 2, 0.4);
 
-  --blurple: #5865F2;
-  --blurple-dim: rgba(88, 101, 242, 0.15);
-  --blurple-glow: rgba(88, 101, 242, 0.4);
+  --cyan-primary: #00d4ff;
+  --cyan-dim: rgba(0, 212, 255, 0.15);
+  --cyan-glow: rgba(0, 212, 255, 0.4);
 
-  --electric-violet: #8c7ae6;
-  --electric-violet-dim: rgba(140, 122, 230, 0.15);
-  --electric-violet-glow: rgba(140, 122, 230, 0.4);
+  --cyan-light: #33ddff;
+  --cyan-light-dim: rgba(51, 221, 255, 0.15);
+  --cyan-light-glow: rgba(51, 221, 255, 0.4);
 
   /* TYPOGRAPHY - DeFi Grade */
-  --font-primary: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', 'SF Mono', 'Consolas', monospace;
 
   --font-weight-light: 300;
@@ -134,11 +140,11 @@ ul, ol {
   --font-weight-bold: 700;
 
   /* TEXT HIERARCHY */
-  --text-primary: #f0f6fc;
-  --text-secondary: #8b949e;
-  --text-tertiary: #6e7681;
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
   --text-disabled: rgba(255, 255, 255, 0.25);
-  --text-mono: #d2a8ff;
+  --text-mono: #00d4ff;
 
   /* SEMANTIC COLORS */
   --success: var(--signal-safe);
@@ -154,8 +160,8 @@ ul, ol {
   --warning-glow: var(--electric-amber-glow);
 
   --primary: var(--signal-action);
-  --primary-dim: var(--blurple-dim);
-  --primary-glow: var(--blurple-glow);
+  --primary-dim: var(--cyan-dim);
+  --primary-glow: var(--cyan-glow);
 
   /* SPACING SYSTEM */
   --space-xs: 0.25rem;
@@ -192,12 +198,21 @@ ul, ol {
    GLOBAL STYLES
    ============================================ */
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-primary);
   font-weight: var(--font-weight-regular);
   color: var(--text-primary);
-  background: radial-gradient(circle at 50% 0%, var(--bg-secondary), var(--bg-deep));
+  background-color: var(--bg-deep);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 212, 255, 0.15), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(0, 255, 136, 0.08), transparent),
+    radial-gradient(ellipse 50% 30% at 0% 100%, rgba(0, 212, 255, 0.05), transparent);
   background-attachment: fixed;
+  min-height: 100vh;
 }
 
 #root {
@@ -264,7 +279,12 @@ body {
 
 /* === SELECTION === */
 ::selection {
-  background: var(--primary-glow);
+  background: rgba(0, 212, 255, 0.3);
+  color: var(--text-primary);
+}
+
+::-moz-selection {
+  background: rgba(0, 212, 255, 0.3);
   color: var(--text-primary);
 }
 

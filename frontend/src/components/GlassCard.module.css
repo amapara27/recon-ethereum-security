@@ -1,16 +1,19 @@
 .glassCard {
   position: relative;
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--glass-shadow);
-  padding: var(--space-lg);
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  padding: var(--space-xl);
   transition: all var(--transition-base);
   overflow: hidden;
 }
 
+/* Top highlight line */
 .glassCard::before {
   content: '';
   position: absolute;
@@ -21,19 +24,45 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.15),
     transparent
   );
-  opacity: 0.5;
+}
+
+/* Gradient border overlay on hover */
+.glassCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 212, 255, 0.3),
+    rgba(0, 255, 136, 0.1),
+    transparent,
+    transparent
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--transition-base);
 }
 
 .glassCard:hover {
-  background: var(--glass-bg-hover);
-  border-color: var(--glass-border-hover);
+  background: rgba(26, 31, 46, 0.75);
+  border-color: rgba(255, 255, 255, 0.12);
   transform: translateY(-2px);
   box-shadow:
-    var(--glass-shadow),
-    0 8px 40px rgba(0, 0, 0, 0.15);
+    0 8px 32px rgba(0, 0, 0, 0.25),
+    0 0 20px rgba(0, 212, 255, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+
+.glassCard:hover::after {
+  opacity: 1;
 }
 
 /* === CARD VARIANTS === */
