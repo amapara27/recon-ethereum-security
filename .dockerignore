@@ -1,3 +1,62 @@
+# Environment files (contain secrets)
 backend/.env
 .env
 **/.env
+
+# Python cache
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist/
+build/
+
+# Jupyter notebooks
+**/*.ipynb_checkpoints
+backend/notebooks/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+LICENSE
+
+# Frontend (not needed in backend container)
+frontend/
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Tests and CI
+tests/
+.github/
+*.http
+
+# Databases (will be mounted as volumes)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log

@@ -1,139 +1,402 @@
-# Recon: Ethereum Blockchain Dashboard
+<div align="center">
 
-Recon is a **Real-Time Fraud Detection Engine** that listens to live Ethereum blocks, analyzes the behavioral "fingerprint" of transaction senders, and flags high-risk activity using machine learning. Built with Python, FastAPI, and React, it provides a production-ready system for monitoring Ethereum transactions in real-time.
+# 🛡️ Recon
+
+### Real-Time Ethereum Fraud Detection & Smart Contract Security Auditor
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![React](https://img.shields.io/badge/react-19.2.0-61dafb.svg)](https://reactjs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688.svg)](https://fastapi.tiangolo.com/)
+
+**Recon** is a production-ready, real-time fraud detection engine that monitors live Ethereum blocks, analyzes transaction behavioral fingerprints using machine learning, and audits smart contracts for security vulnerabilities with AI-powered analysis.
+
+[Watch Demo](https://youtu.be/5ofxkW9tX0w) • [Report Bug](https://github.com/your-username/recon/issues) • [Request Feature](https://github.com/your-username/recon/issues)
+
+</div>
 
 ---
 
-## Demo
+## 📺 Demo
+
 [![Watch the Demo](https://img.youtube.com/vi/5ofxkW9tX0w/0.jpg)](https://youtu.be/5ofxkW9tX0w)
 
-## 🌎 Use Cases
+<div align="center"><i>Click to watch the full demonstration</i></div>
 
-* **DeFi Security:** Monitor live transactions for fraudulent patterns before interacting with protocols
-* **Threat Detection:** Identify suspicious wallet behavior and potential scams in real-time
-* **Research & Analysis:** Study fraud patterns and behavioral fingerprints on the Ethereum network
-* **Transaction Monitoring:** Track and analyze transaction flows with ML-powered risk scoring
+## 🎯 Use Cases
+
+<table>
+<tr>
+<td width="50%">
+
+**🔐 DeFi Security**
+Monitor live transactions for fraudulent patterns before interacting with protocols
+
+</td>
+<td width="50%">
+
+**⚠️ Threat Detection**
+Identify suspicious wallet behavior and potential scams in real-time
+
+</td>
+</tr>
+<tr>
+<td>
+
+**📊 Research & Analysis**
+Study fraud patterns and behavioral fingerprints on the Ethereum network
+
+</td>
+<td>
+
+**📈 Transaction Monitoring**
+Track and analyze transaction flows with ML-powered risk scoring
+
+</td>
+</tr>
+</table>
 
 ---
 
-## 🚀 Core Features
+## ✨ Key Features
 
-* **Real-Time Fraud Detection:** Monitors live Ethereum blocks, analyzes transaction patterns using 770+ features, and flags suspicious activity with AI (Random Forest, F1: 0.92)
-* **Smart Contract Auditor:** AI-powered vulnerability scanner using Claude Opus 4.5 to detect reentrancy, honeypots, centralization risks, and other security issues in Solidity contracts
-* **Intelligent Caching:** SQL-based caching system for contract analyses to minimize API costs and improve response times
-* **Smart Feature Engineering:** Automatically fetches complete transaction history from Etherscan and calculates behavioral fingerprints on-the-fly
-* **Full-Stack Dashboard:** React frontend with FastAPI backend displaying live fraud alerts, transaction monitoring, and contract analysis
-* **Cloud-Deployed:** Production deployment on AWS EC2 with Docker containerization for 24/7 monitoring
-* **Scalable Infrastructure:** Persistent database, intelligent caching, and auto-restart capabilities
+### 🤖 Real-Time Fraud Detection
+Monitors live Ethereum blocks and analyzes transaction patterns using **770+ behavioral features** to flag suspicious activity with high accuracy (Random Forest classifier, **F1-Score: 0.92**).
+
+### 🔍 AI-Powered Smart Contract Auditor
+Leverages **Claude Opus 4.5** to perform deep security analysis of Solidity contracts, detecting:
+- Reentrancy vulnerabilities
+- Honeypot schemes
+- Centralization risks
+- Access control issues
+- And more security threats
+
+### ⚡ Intelligent Caching System
+SQL-based caching layer that stores contract analyses, reducing API costs and improving response times for repeat queries.
+
+### 🧠 Advanced Feature Engineering
+Automatically fetches complete transaction histories from Etherscan and generates comprehensive behavioral fingerprints on-the-fly for accurate fraud prediction.
+
+### 🎨 Modern Full-Stack Dashboard
+React-based frontend with FastAPI backend providing:
+- Live fraud alerts
+- Transaction scanner interface
+- Contract security analysis
+- Responsive, glassmorphic UI
+
+### ☁️ Production-Ready Deployment
+Fully containerized with Docker and Docker Compose, ready for deployment on AWS EC2 or any cloud provider with:
+- 24/7 monitoring capabilities
+- Persistent SQLite databases
+- Auto-restart mechanisms
+- Environment-based configuration
 
 ---
 
-## 🛠️ Architecture
+## 🏗️ Architecture
 
-**Backend (`backend/`):**
-* `monitor.py` - Listens to live Ethereum blocks via Web3.py, processes transactions through the ML pipeline, and stores alerts
-* `feature_pipeline.py` - Fetches transaction history from Etherscan and generates 770+ feature vectors for fraud prediction
-* `contract_analyzer.py` - AI-powered smart contract security auditor with SQL caching
-* `contract_fetcher.py` - Retrieves verified contract source code from Etherscan
-* `api.py` - FastAPI server exposing RESTful endpoints for fraud alerts and contract analysis
-* `models/` - Pre-trained Random Forest classifier and feature templates
-* `data/` - Original training dataset
-* `alerts.db` - SQLite database storing fraud alerts
-* `contract_cache.db` - SQLite database caching contract analysis results
+### Backend (`backend/`)
 
-**Frontend (`frontend/`):**
-* React dashboard with live fraud alerts, transaction scanner, and responsive UI
+| Component | Description |
+|-----------|-------------|
+| **`monitor.py`** | Real-time block listener using Web3.py that processes transactions through the ML pipeline and stores alerts |
+| **`feature_pipeline.py`** | Transaction history fetcher that generates 770+ behavioral feature vectors from Etherscan data |
+| **`contract_analyzer.py`** | AI-powered security auditor with SQL-based caching for efficient contract analysis |
+| **`contract_fetcher.py`** | Verified contract source code retrieval from Etherscan API |
+| **`api.py`** | FastAPI REST server exposing endpoints for fraud alerts and contract analysis |
+| **`models/`** | Pre-trained Random Forest classifier (F1: 0.92) and feature templates |
+| **`data/`** | Original training dataset for model development |
+| **`alerts.db`** | SQLite database for persistent fraud alert storage |
+| **`contract_cache.db`** | SQLite cache for contract analysis results |
+
+### Frontend (`frontend/`)
+
+Built with **React 19** and **Vite**, featuring:
+- Glassmorphic design system
+- Real-time fraud alert dashboard
+- Transaction scanner interface
+- Smart contract auditor UI
+- Responsive layout with Bootstrap integration
 
 ---
 
 ## 🔧 Tech Stack
 
-* **Backend:** Python, FastAPI
-* **Machine Learning:** Scikit-learn (Random Forest), Pandas, NumPy
-* **AI:** Anthropic Claude Opus 4.5 for smart contract security analysis
-* **Blockchain:** Web3.py, Etherscan API
-* **Frontend:** JavaScript, React
-* **Database:** SQLite with intelligent caching
-* **Deployment:** Docker, Docker Compose, AWS EC2
-* **Infrastructure:** Systemd services, persistent volumes, environment-based configuration
+<table>
+<tr>
+<td valign="top" width="33%">
+
+### Backend
+- **Framework:** FastAPI
+- **Language:** Python 3.8+
+- **ML/AI:** scikit-learn, Anthropic Claude
+- **Blockchain:** Web3.py, Etherscan API
+- **Data Processing:** Pandas, NumPy
+
+</td>
+<td valign="top" width="33%">
+
+### Frontend
+- **Framework:** React 19
+- **Build Tool:** Vite
+- **Styling:** Bootstrap, Custom CSS
+- **HTTP Client:** Axios
+- **Type Safety:** ESLint
+
+</td>
+<td valign="top" width="33%">
+
+### Infrastructure
+- **Containerization:** Docker, Docker Compose
+- **Database:** SQLite
+- **Deployment:** AWS EC2
+- **Process Management:** Auto-restart policies
+
+</td>
+</tr>
+</table>
 
 ---
 
-## 🏁 Quick Start
+## 🚀 Getting Started
 
-### Docker (Recommended)
+### Prerequisites
+
+Before you begin, ensure you have:
+- **Docker & Docker Compose** (recommended) or **Python 3.8+** and **Node.js 16+**
+- **Infura API Key** ([Get free tier](https://infura.io/))
+- **Etherscan API Key** ([Get free tier](https://etherscan.io/apis))
+- **Anthropic API Key** ([Get API access](https://console.anthropic.com/))
+
+---
+
+### 🐳 Docker Deployment (Recommended)
+
+The fastest way to get Recon running:
+
 ```bash
-# Clone and setup
+# 1. Clone the repository
 git clone https://github.com/your-username/recon.git
 cd recon
 
-# Add API keys to backend/.env
-echo 'INFURA_RPC_URL="https://mainnet.infura.io/v3/YOUR_KEY"' > backend/.env
-echo 'ETHERSCAN_API_KEY="YOUR_KEY"' >> backend/.env
-echo 'ANTHROPIC_API_KEY="YOUR_KEY"' >> backend/.env
+# 2. Configure environment variables
+cat > backend/.env << EOF
+INFURA_RPC_URL="https://mainnet.infura.io/v3/YOUR_INFURA_KEY"
+ETHERSCAN_API_KEY="YOUR_ETHERSCAN_KEY"
+ANTHROPIC_API_KEY="YOUR_ANTHROPIC_KEY"
+EOF
 
-# Run
+# 3. Launch with Docker Compose
 docker-compose up --build
 ```
-Access at `http://localhost:5173` (frontend) and `http://localhost:8000` (API)
 
-### Local Development
+**Access Points:**
+- 🎨 Frontend Dashboard: `http://localhost:5173`
+- 🔌 API Documentation: `http://localhost:8000/docs`
+- 📊 Fraud Alerts: `http://localhost:8000/alerts`
+
+---
+
+### 💻 Local Development
+
+For development without Docker:
+
+#### Backend Setup
 ```bash
-# Backend
-conda env create -f environment.yml && conda activate eth_fraud_detector
-cd backend && python src/monitor.py & python src/api.py
+# Create conda environment
+conda create -n recon python=3.8
+conda activate recon
 
-# Frontend (separate terminal)
-cd frontend && npm install && npm run dev
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment
+cp backend/.env.example backend/.env
+# Edit backend/.env with your API keys
+
+# Start monitoring service (Terminal 1)
+cd backend
+python src/monitor.py
+
+# Start API server (Terminal 2)
+cd backend
+python src/api.py
 ```
 
-### AWS EC2 Deployment
+#### Frontend Setup
 ```bash
-# Launch EC2 instance (Ubuntu 22.04, t2.micro or larger)
-# Configure security group: Allow inbound on port 8000
+# Install dependencies (Terminal 3)
+cd frontend
+npm install
 
-# SSH into instance and setup
-sudo apt update && sudo apt install -y docker.io docker-compose git
+# Start development server
+npm run dev
+```
+
+**Access:**
+- Frontend: `http://localhost:5173`
+- API: `http://localhost:8000`
+
+---
+
+### ☁️ AWS EC2 Production Deployment
+
+Deploy Recon to AWS for 24/7 monitoring:
+
+#### 1. Launch EC2 Instance
+- **AMI:** Ubuntu Server 22.04 LTS
+- **Instance Type:** t2.small or larger (t2.micro may be insufficient)
+- **Security Group:**
+  - Inbound: Port 8000 (API), Port 22 (SSH)
+  - Outbound: All traffic
+
+#### 2. SSH and Install Dependencies
+```bash
+# Connect to your instance
+ssh -i your-key.pem ubuntu@YOUR_EC2_PUBLIC_IP
+
+# Update system and install Docker
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y docker.io docker-compose git
 sudo usermod -aG docker ubuntu
+newgrp docker
+```
 
-# Clone and configure
+#### 3. Deploy Application
+```bash
+# Clone repository
 git clone https://github.com/your-username/recon.git
 cd recon
-echo 'INFURA_RPC_URL="https://mainnet.infura.io/v3/YOUR_KEY"' > backend/.env
-echo 'ETHERSCAN_API_KEY="YOUR_KEY"' >> backend/.env
-echo 'ANTHROPIC_API_KEY="YOUR_KEY"' >> backend/.env
 
-# Deploy with auto-restart
+# Configure environment
+cat > backend/.env << EOF
+INFURA_RPC_URL="https://mainnet.infura.io/v3/YOUR_INFURA_KEY"
+ETHERSCAN_API_KEY="YOUR_ETHERSCAN_KEY"
+ANTHROPIC_API_KEY="YOUR_ANTHROPIC_KEY"
+EOF
+
+# Start services in detached mode
 docker-compose up -d
+
+# Check status
+docker-compose ps
+docker-compose logs -f
 ```
 
-Access at `http://YOUR_EC2_IP:8000/docs` for API and `http://YOUR_EC2_IP:8000/alerts` for alerts
+#### 4. Access Your Deployment
+- 🔌 API Documentation: `http://YOUR_EC2_PUBLIC_IP:8000/docs`
+- 📊 Fraud Alerts Endpoint: `http://YOUR_EC2_PUBLIC_IP:8000/alerts`
+
+#### Optional: Enable HTTPS
+For production use, consider setting up Nginx with Let's Encrypt SSL certificates.
+
+---
+
+## 📋 API Endpoints
+
+### Fraud Detection
+```http
+GET /alerts
+```
+Returns all detected fraud alerts with transaction details and risk scores.
+
+### Smart Contract Analysis
+```http
+POST /analyze-contract
+Content-Type: application/json
+
+{
+  "contract_address": "0x..."
+}
+```
+Performs AI-powered security audit of the specified contract.
+
+### Documentation
+```http
+GET /docs
+```
+Interactive Swagger UI documentation for all API endpoints.
 
 ---
 
 ## 🗺️ Roadmap
 
-**✅ Completed**
-* Full-stack fraud detection system with React UI and FastAPI backend
-* Dockerized deployment with live transaction tracking and database persistence
-* AWS EC2 production deployment with 24/7 monitoring capabilities
-* Docker containerization with systemd service management
-* AI-powered smart contract security auditor using Claude Opus 4.5
-* SQL-based caching system for contract analyses
+### ✅ Completed Features
 
-**📋 Future Enhancements**
-* **Wallet Watcher:** Real-time wallet analysis, trade monitoring, portfolio tracking, and behavioral analytics
-* **One-Click Staking (Testnet):** Simplified staking interface for testing and development
-* **AI Command Bar:** Natural language interface for sending transactions, querying blockchain data, and executing operations
-* **Advanced Infrastructure:** RDS migration, CloudWatch monitoring, auto-scaling, load balancing
-* **Wallet Investigator:** Transaction graph visualization and fund tracing
-* **Token Analysis:** Honeypot and scam token detector for ERC20 contracts
-* **Phishing Detection:** Real-time monitoring for scam domains and phishing sites
-* **Analytics Dashboard:** Historical trends, fraud pattern analysis, and statistics
-* **Alert System:** Configurable notifications and webhooks for high-risk activity
+- [x] Real-time fraud detection with ML (F1: 0.92)
+- [x] AI-powered smart contract security auditor
+- [x] Full-stack dashboard (React + FastAPI)
+- [x] Docker containerization with compose
+- [x] AWS EC2 production deployment
+- [x] SQL-based intelligent caching
+- [x] 770+ behavioral feature engineering
+- [x] Persistent database storage
+
+### 🚧 In Progress
+
+- [ ] Enhanced analytics dashboard with historical trends
+- [ ] Advanced alert notification system
+
+### 📅 Planned Features
+
+#### Security & Analysis
+- **Wallet Investigator**: Transaction graph visualization and fund flow tracing
+- **Token Scanner**: Honeypot and scam token detector for ERC20 contracts
+- **Phishing Detector**: Real-time monitoring for scam domains and phishing sites
+- **Pattern Analyzer**: Advanced fraud pattern analysis and statistics
+
+#### Wallet Tools
+- **Wallet Watcher**: Real-time wallet analysis and behavioral tracking
+- **Portfolio Monitor**: Trade monitoring and portfolio analytics
+- **Transaction Tracker**: Multi-wallet transaction monitoring
+
+#### Infrastructure
+- **Database Migration**: Move from SQLite to PostgreSQL/RDS
+- **Cloud Monitoring**: CloudWatch integration and alerting
+- **Auto-Scaling**: Load balancing and horizontal scaling
+- **Alert Webhooks**: Configurable notifications and custom integrations
+
+#### User Experience
+- **AI Command Bar**: Natural language interface for blockchain queries
+- **One-Click Staking**: Simplified testnet staking interface
+- **Custom Dashboards**: User-configurable monitoring views
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
 ## 📄 License
 
-Distributed under the MIT License. See `LICENSE` file for more information.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- [Web3.py](https://web3py.readthedocs.io/) - Ethereum blockchain interaction
+- [Etherscan API](https://etherscan.io/apis) - Transaction history data
+- [Anthropic Claude](https://www.anthropic.com/) - AI-powered contract analysis
+- [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework
+- [React](https://reactjs.org/) - Frontend framework
+
+---
+
+<div align="center">
+
+**⭐ Star this repo if you find it useful!**
+
+Made with ❤️ for the Ethereum community
+
+[Report Bug](https://github.com/your-username/recon/issues) • [Request Feature](https://github.com/your-username/recon/issues)
+
+</div>
