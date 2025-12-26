@@ -129,7 +129,7 @@ function App() {
             data-tooltip="Auditor"
           >
             <AuditorIcon />
-            <span className="sidebar-nav-label">Auditor</span>
+            <span className="sidebar-nav-label">Contract Auditor</span>
           </button>
 
           <button
@@ -138,7 +138,7 @@ function App() {
             data-tooltip="Wallet"
           >
             <WalletIcon />
-            <span className="sidebar-nav-label">Wallet</span>
+            <span className="sidebar-nav-label">Wallet Watcher</span>
           </button>
         </nav>
       </aside>
