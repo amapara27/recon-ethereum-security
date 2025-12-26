@@ -77,13 +77,24 @@ function AddressAvatar({ address, size = 32 }) {
 
 // Format relative time
 function getRelativeTime(timestamp) {
+  if (!timestamp) return 'just now'
+
   const now = Date.now()
-  const diff = now - new Date(timestamp).getTime()
+  // Handle Unix timestamps (seconds) vs milliseconds
+  let time = typeof timestamp === 'number'
+    ? (timestamp < 1e12 ? timestamp * 1000 : timestamp)
+    : new Date(timestamp).getTime()
+
+  // If timestamp is invalid or in the future, show "just now"
+  if (isNaN(time) || time > now) return 'just now'
+
+  const diff = now - time
   const seconds = Math.floor(diff / 1000)
   const minutes = Math.floor(seconds / 60)
   const hours = Math.floor(minutes / 60)
 
-  if (seconds < 60) return 'just now'
+  if (seconds < 5) return 'just now'
+  if (seconds < 60) return `${seconds}s ago`
   if (minutes < 60) return `${minutes}m ago`
   if (hours < 24) return `${hours}h ago`
   return `${Math.floor(hours / 24)}d ago`
