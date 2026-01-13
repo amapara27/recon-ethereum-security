@@ -1,19 +1,23 @@
 import sqlite3
 import uvicorn
+import sys
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from pathlib import Path
 from typing import List
 from pydantic import BaseModel
 
-from contract_fetcher import fetch_source_code
-from contract_analyzer import analyze_smart_contract
+# Add backend to sys.path for absolute imports
+sys.path.append(str(Path(__file__).parent.parent.parent))
+
+from app.services.contract_fetcher import fetch_source_code
+from app.services.contract_analyzer import analyze_smart_contract
 
 base_dir = Path(__file__).parent
-alerts_path = base_dir.parent / "alerts.db"
-audits_path = base_dir.parent / "contract_cache.db"
+alerts_path = base_dir.parent.parent / "database/alerts.db"
+audits_path = base_dir.parent.parent / "database/contract_cache.db"
 
 app = FastAPI()
 

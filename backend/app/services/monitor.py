@@ -11,10 +11,10 @@ from feature_pipeline import get_feature_vector, load_master_column_list
 
 # Loading files
 base_dir = Path(__file__).parent
-lists_dir = base_dir / "lists"
+lists_dir = base_dir.parent / "config/lists"
 models_dir = base_dir.parent / "models"
 env_path = base_dir.parent.parent / ".env"
-alerts_path = base_dir.parent / "alerts.db"
+alerts_path = base_dir.parent.parent / "database/alerts.db"
 
 # Ensure the directory for alerts.db exists
 alerts_path.parent.mkdir(parents=True, exist_ok=True)

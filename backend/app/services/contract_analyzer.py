@@ -8,11 +8,14 @@ from datetime import datetime
 from dotenv import load_dotenv
 from pathlib import Path
 
-from contract_fetcher import fetch_source_code
+try:
+    from .contract_fetcher import fetch_source_code
+except ImportError:
+    from contract_fetcher import fetch_source_code
 
 base_dir = Path(__file__).parent
-env_path = base_dir.parent / ".env"
-cache_db_path = base_dir.parent / "contract_cache.db"
+env_path = base_dir.parent.parent / ".env"
+cache_db_path = base_dir.parent.parent / "contract_cache.db"
 
 load_dotenv(env_path)
 
