@@ -9,13 +9,13 @@ services:
       - "8000:8000"
     volumes:
       # Persistent database for fraud alerts
-      - ./backend/alerts.db:/app/backend/alerts.db
+      - ./backend/database/alerts.db:/app/backend/database/alerts.db
       # Cache database for smart contract analyses (reduces API costs)
-      - ./backend/contract_cache.db:/app/backend/contract_cache.db
+      - ./backend/database/contract_cache.db:/app/backend/database/contract_cache.db
       # Pre-trained ML models
-      - ./backend/models:/app/backend/models
+      - ./backend/app/models:/app/backend/app/models
       # Address lists (whitelists, blacklists, etc.)
-      - ./backend/src/lists:/app/backend/src/lists
+      - ./backend/app/config/lists:/app/backend/app/config/lists
     env_file:
       - ./backend/.env
     environment:

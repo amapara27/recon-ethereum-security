@@ -1,22 +1,29 @@
 .env
 *.env
-*.env.local
+**/.env
+backend/.env
+backend/*.env
+.env.local
+.env.*
 
 !.env.example
 !**/.env.example
 
-backend/alerts.db
-backend/contract_cache.db
 *.db
 *.sqlite
 *.sqlite3
+/backend/database/
+/backend/*.db
 
 backend/data/erc20_history.csv
 backend/data/eth_history.csv
 
-frontend/node_modules
-node_modules/
+/backend/app/models/
+*.joblib
+*.pkl
 
+node_modules/
+frontend/node_modules/
 frontend/dist
 dist/
 build/
@@ -35,10 +42,23 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+venv/
+.venv/
+env/
+env.bak/
 
 *.log
 logs/
-
 tmp/
 temp/
 *.tmp
+
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+*.pfx
+.aws/
+credentials
+secrets.yml

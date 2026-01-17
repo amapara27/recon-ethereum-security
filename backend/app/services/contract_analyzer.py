@@ -15,7 +15,7 @@ except ImportError:
 
 base_dir = Path(__file__).parent
 env_path = base_dir.parent.parent / ".env"
-cache_db_path = base_dir.parent.parent / "contract_cache.db"
+cache_db_path = base_dir.parent.parent / "database/contract_cache.db"
 
 load_dotenv(env_path)
 
