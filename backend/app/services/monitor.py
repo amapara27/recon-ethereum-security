@@ -42,12 +42,22 @@ def setup_databse():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             "timestamp" DATETIME DEFAULT CURRENT_TIMESTAMP,
             "address" TEXT NOT NULL,
-            "to_address" TEXT,
-            "value" TEXT,
             "tx_hash" TEXT NOT NULL UNIQUE,
             "probability" DOUBLE NOT NULL
         )
     ''')
+
+    # Add missing columns if they don't exist
+    cursor.execute("PRAGMA table_info(alerts)")
+    columns = [info[1] for info in cursor.fetchall()]
+    
+    if "to_address" not in columns:
+        print("Migrating: Adding to_address column")
+        cursor.execute('ALTER TABLE alerts ADD COLUMN "to_address" TEXT')
+    
+    if "value" not in columns:
+        print("Migrating: Adding value column")
+        cursor.execute('ALTER TABLE alerts ADD COLUMN "value" TEXT')
 
     conn.commit()
     conn.close()
