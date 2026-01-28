@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 from contract_fetcher import fetch_source_code
@@ -32,6 +32,8 @@ app.add_middleware(
 class Alert(BaseModel):
     id: int
     address: str
+    to_address: Optional[str] = None
+    value: Optional[str] = None
     timestamp: str
     tx_hash: str
     probability: float
@@ -62,6 +64,8 @@ def get_latest_alerts(limit: int = 200):
             alert = {
                 'id': entry['id'],
                 'address': entry['address'],
+                'to_address': entry['to_address'],
+                'value': entry['value'],
                 'timestamp': tx_time.isoformat(),
                 'tx_hash': entry['tx_hash'],
                 'probability': entry['probability']

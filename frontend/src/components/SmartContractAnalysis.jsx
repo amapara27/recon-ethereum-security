@@ -1,426 +1,318 @@
-import { useState, useEffect } from 'react'
-import api from '../api'
+import { useState } from 'react'
+import CyberCard from './CyberCard'
 
-// SVG Icons
-function ClipboardIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-    </svg>
-  )
-}
+// --- ICONS ---
+const AuditorIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <path d="M12 8v4" />
+    <path d="M12 16h.01" />
+  </svg>
+)
 
-function ClearIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  )
-}
+const ChevronIcon = ({ expanded }) => (
+  <svg
+    width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+    style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }}
+  >
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+)
 
-function ChevronIcon({ expanded }) {
+const WarningIcon = ({ color }) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
+  </svg>
+)
+
+// --- SUB-COMPONENT: Vulnerability Item (Morphing) ---
+const VulnerabilityItem = ({ vuln, index }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  const getSeverityStyle = (severity) => {
+    switch (severity?.toLowerCase()) {
+      case 'critical': return { color: 'var(--accent-danger)', bg: 'rgba(255, 42, 81, 0.1)' };
+      case 'high': return { color: 'var(--accent-danger)', bg: 'rgba(255, 42, 81, 0.05)' };
+      case 'medium': return { color: '#ffa500', bg: 'rgba(255, 165, 0, 0.05)' };
+      default: return { color: 'var(--accent-success)', bg: 'rgba(0, 255, 157, 0.05)' };
+    }
+  };
+
+  const style = getSeverityStyle(vuln.severity);
+
   return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+    <div
+      onClick={() => setExpanded(!expanded)}
       style={{
-        transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-        transition: 'transform 0.2s ease'
+        background: style.bg,
+        border: `1px solid ${expanded ? style.color : 'var(--border-subtle)'}`,
+        borderRadius: '8px',
+        marginBottom: '8px',
+        padding: '12px 16px',
+        cursor: 'pointer',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        position: 'relative',
+        overflow: 'hidden'
       }}
     >
-      <polyline points="6 9 12 15 18 9" />
-    </svg>
-  )
-}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <WarningIcon color={style.color} />
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: '14px', color: 'white' }}>{vuln.type}</span>
+          <span style={{
+            fontSize: '10px',
+            background: style.color,
+            color: 'black',
+            padding: '2px 6px',
+            borderRadius: '4px',
+            fontWeight: '900',
+            textTransform: 'uppercase'
+          }}>
+            {vuln.severity}
+          </span>
+        </div>
+        <ChevronIcon expanded={expanded} />
+      </div>
 
-function ShieldCheckIcon() {
-  return (
-    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      <path d="M9 12l2 2 4-4" />
-    </svg>
-  )
-}
-
-// Security Score Ring Component
-function SecurityScoreRing({ score }) {
-  const radius = 54
-  const strokeWidth = 8
-  const circumference = 2 * Math.PI * radius
-  const offset = circumference - (score / 100) * circumference
-
-  const getScoreColor = () => {
-    if (score >= 70) return { stroke: '#00ff88', glow: 'rgba(0, 255, 136, 0.4)' }
-    if (score >= 40) return { stroke: '#ffa502', glow: 'rgba(255, 165, 2, 0.4)' }
-    return { stroke: '#ff4757', glow: 'rgba(255, 71, 87, 0.4)' }
-  }
-
-  const colors = getScoreColor()
-
-  return (
-    <div className="security-score-ring">
-      <svg width="140" height="140" viewBox="0 0 140 140">
-        {/* Background ring */}
-        <circle
-          cx="70"
-          cy="70"
-          r={radius}
-          fill="none"
-          stroke="rgba(255, 255, 255, 0.1)"
-          strokeWidth={strokeWidth}
-        />
-        {/* Progress ring */}
-        <circle
-          cx="70"
-          cy="70"
-          r={radius}
-          fill="none"
-          stroke={colors.stroke}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          style={{
-            filter: `drop-shadow(0 0 8px ${colors.glow})`,
-            transform: 'rotate(-90deg)',
-            transformOrigin: '50% 50%',
-            transition: 'stroke-dashoffset 0.8s ease-out'
-          }}
-        />
-      </svg>
-      <div className="security-score-value" style={{ color: colors.stroke }}>
-        <span className="score-number">{score}</span>
-        <span className="score-label">/ 100</span>
+      <div style={{
+        maxHeight: expanded ? '200px' : '0',
+        opacity: expanded ? 1 : 0,
+        marginTop: expanded ? '12px' : '0',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        fontSize: '13px',
+        lineHeight: '1.6',
+        color: 'var(--text-secondary)'
+      }}>
+        <div style={{ marginBottom: '8px' }}>{vuln.description}</div>
+        <div style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '11px',
+          color: style.color,
+          background: 'rgba(0,0,0,0.2)',
+          padding: '4px 8px',
+          borderRadius: '4px',
+          display: 'inline-block'
+        }}>
+          DETECTED AT: {vuln.line_number || 'N/A'}
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
+// --- MAIN COMPONENT ---
 function SmartContractAnalysis() {
   const [contractAddress, setContractAddress] = useState('')
-  const [analysis, setAnalysis] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [loadingText, setLoadingText] = useState('Initializing analysis...')
-  const [expandedFindings, setExpandedFindings] = useState(new Set())
+  const [analyzing, setAnalyzing] = useState(false)
+  const [report, setReport] = useState(null)
+  const [errorMessage, setErrorMessage] = useState('')
 
-  useEffect(() => {
-    console.log('SmartContractAnalysis mounted. API base URL:', api.defaults.baseURL)
-  }, [])
+  const handleAnalyze = async (e) => {
+    e.preventDefault()
+    if (!contractAddress) return
 
-  useEffect(() => {
-    if (!loading) return
-
-    const messages = [
-      "🔗 Connecting to Ethereum Network...",
-      "📜 Fetching Contract Source Code...",
-      "🔍 Scanning for Vulnerabilities...",
-      "🧠 AI Agent Analyzing Security Patterns...",
-      "⚡ Checking for Reentrancy Attacks...",
-      "🛡️ Generating Security Report..."
-    ]
-
-    let i = 0
-    setLoadingText(messages[0])
-
-    const interval = setInterval(() => {
-      i = (i + 1) % messages.length
-      setLoadingText(messages[i])
-    }, 900)
-
-    return () => clearInterval(interval)
-  }, [loading])
-
-  const analyzeContract = async () => {
-    if (!contractAddress.trim()) {
-      setError('Please enter a contract address')
-      return
-    }
-
-    if (!/^0x[a-fA-F0-9]{40}$/.test(contractAddress.trim())) {
-      setError('Invalid Ethereum address format')
-      return
-    }
-
-    setLoading(true)
-    setError('')
-    setAnalysis(null)
-
-    const MIN_LOADING_TIME = 3000;
-    const timerPromise = new Promise(resolve => setTimeout(resolve, MIN_LOADING_TIME));
-
-    const apiPromise = api.post('/api/contract-analyzer', {
-      address: contractAddress.trim()
-    });
+    setAnalyzing(true)
+    setErrorMessage('')
+    setReport(null)
 
     try {
-      const [_, response] = await Promise.all([timerPromise, apiPromise]);
-      console.log('Analysis response:', response.data);
-      setAnalysis(response.data);
-    } catch (err) {
-      console.error('Analysis error:', err)
-      console.error('Error response:', err.response)
-      setError(err.response?.data?.detail || err.message || 'Failed to analyze contract. Please check the address and try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const response = await fetch(`${apiUrl}/api/contract-analyzer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: contractAddress })
+      });
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      analyzeContract()
-    }
-  }
-
-  const handlePaste = async () => {
-    try {
-      const text = await navigator.clipboard.readText()
-      setContractAddress(text)
-    } catch (err) {
-      console.error('Failed to read clipboard:', err)
-    }
-  }
-
-  const handleClear = () => {
-    setContractAddress('')
-    setAnalysis(null)
-    setError('')
-  }
-
-  const toggleFinding = (index) => {
-    setExpandedFindings(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(index)) {
-        newSet.delete(index)
-      } else {
-        newSet.add(index)
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Analysis Failed');
       }
-      return newSet
-    })
+
+      const data = await response.json();
+      setReport(data);
+    } catch (err) {
+      console.error("Auditor API Error:", err);
+      setErrorMessage(err.message);
+    } finally {
+      setAnalyzing(false)
+    }
   }
 
-  const getRiskBadgeClass = (riskLevel) => {
-    const level = riskLevel?.toLowerCase()
-    if (level === 'critical') return 'severity-critical'
-    if (level === 'high') return 'severity-high'
-    if (level === 'medium') return 'severity-medium'
-    if (level === 'low') return 'severity-low'
-    return 'severity-info'
-  }
+  const getRiskColor = (level) => {
+    switch (level?.toLowerCase()) {
+      case 'critical':
+      case 'high': return 'var(--accent-danger)';
+      case 'medium': return '#ffa500';
+      case 'low': return 'var(--accent-success)';
+      default: return 'var(--text-secondary)';
+    }
+  };
 
-  const getSeverityBadgeClass = (severity) => {
-    const sev = severity?.toLowerCase()
-    if (sev === 'critical') return 'severity-critical'
-    if (sev === 'high') return 'severity-high'
-    if (sev === 'medium') return 'severity-medium'
-    if (sev === 'low') return 'severity-low'
-    return 'severity-info'
-  }
-
-  const getSeverityClass = (severity) => {
-    const sev = severity?.toLowerCase()
-    if (sev === 'critical') return 'finding-critical'
-    if (sev === 'high') return 'finding-high'
-    if (sev === 'medium') return 'finding-medium'
-    if (sev === 'low') return 'finding-low'
-    return 'finding-info'
-  }
-
-  const getSafetyScoreClass = (score) => {
-    if (score >= 70) return 'high'
-    if (score >= 40) return 'medium'
-    return 'low'
+  const getStatusText = (score) => {
+    if (score >= 90) return 'SAFE';
+    if (score >= 70) return 'SECURE';
+    if (score >= 40) return 'RISKY';
+    return 'VULNERABLE';
   }
 
   return (
-    <div className="card" style={{ gridColumn: '1 / -1' }}>
-      <h3>AI Smart Contract Analysis</h3>
+    <CyberCard title="CONTRACT FORENSICS" icon={<AuditorIcon />}>
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <h2 style={{ fontSize: '28px', marginBottom: '8px', color: 'white', letterSpacing: '0.1em' }}>NEURAL AUDIT ENGINE</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Deconstruct and analyze smart contract source code for threats.
+          </p>
+        </div>
 
-      <div className="contract-analysis-container">
-        <div className="contract-input-group">
-          <div className="contract-input-wrapper">
-            <input
-              type="text"
-              value={contractAddress}
-              onChange={(e) => setContractAddress(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Enter contract address (0x...)"
-              disabled={loading}
-              className="contract-address-input"
-            />
-            <div className="input-actions">
-              {contractAddress ? (
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  className="input-action-btn"
-                  title="Clear"
-                  disabled={loading}
-                >
-                  <ClearIcon />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handlePaste}
-                  className="input-action-btn"
-                  title="Paste from clipboard"
-                  disabled={loading}
-                >
-                  <ClipboardIcon />
-                </button>
-              )}
-            </div>
-          </div>
+        <form onSubmit={handleAnalyze} style={{ display: 'flex', gap: '12px', marginBottom: '40px' }}>
+          <input
+            type="text"
+            value={contractAddress}
+            onChange={(e) => setContractAddress(e.target.value)}
+            placeholder="ENTER CONTRACT ADDRESS (0x...)"
+            style={{
+              flex: 1,
+              background: 'rgba(0,0,0,0.4)',
+              border: '1px solid var(--border-subtle)',
+              padding: '18px 24px',
+              borderRadius: '12px',
+              color: 'white',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '15px',
+              outline: 'none',
+              transition: 'border-color 0.3s ease'
+            }}
+          />
           <button
-            onClick={analyzeContract}
-            disabled={loading}
-            className="analyze-btn-gradient"
+            type="submit"
+            disabled={analyzing}
+            style={{
+              background: 'var(--accent-purple)',
+              color: 'white',
+              padding: '0 40px',
+              borderRadius: '12px',
+              fontWeight: '900',
+              fontSize: '13px',
+              letterSpacing: '0.15em',
+              boxShadow: analyzing ? 'none' : '0 0 25px var(--accent-purple-glow)',
+              opacity: analyzing ? 0.6 : 1,
+              cursor: analyzing ? 'not-allowed' : 'pointer',
+              transition: 'all 0.3s'
+            }}
           >
-            {loading ? (
-              <>
-                <span className="btn-spinner"></span>
-                <span>Analyzing</span>
-              </>
-            ) : (
-              <span>Analyze Contract</span>
-            )}
+            {analyzing ? 'SCANNING...' : 'PROCESS TARGET'}
           </button>
-        </div>
-        <p className="input-helper-text">
-          Enter an Ethereum contract address to analyze its security and detect potential vulnerabilities
-        </p>
-      </div>
+        </form>
 
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
-
-      {loading && (
-        <div className="analysis-loading-state">
-          <div className="analysis-loader">
-            <div className="loader-ring"></div>
-            <div className="loader-ring"></div>
-            <div className="loader-ring"></div>
+        {errorMessage && (
+          <div style={{
+            background: 'rgba(255, 42, 81, 0.1)',
+            border: '1px solid var(--accent-danger)',
+            padding: '16px',
+            borderRadius: '8px',
+            color: 'var(--accent-danger)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '13px',
+            marginBottom: '40px'
+          }}>
+            ERROR: {errorMessage.toUpperCase()}
           </div>
-          <p className="loading-status-text">{loadingText}</p>
-          <div className="loading-progress-bar">
-            <div className="loading-progress-fill"></div>
-          </div>
-        </div>
-      )}
+        )}
 
-      {analysis && !loading && (
-        <div className="analysis-results">
-          {/* Prominent Security Score */}
-          <div className="security-score-hero">
-            <SecurityScoreRing score={analysis.safe_score} />
-            <div className="security-score-info">
-              <h4 className="security-score-title">Security Score</h4>
-              <p className={`security-score-status ${getSafetyScoreClass(analysis.safe_score)}`}>
-                {analysis.safe_score >= 70 ? 'Low Risk' : analysis.safe_score >= 40 ? 'Medium Risk' : 'High Risk'}
-              </p>
-              <span className={`auditor-severity-badge ${getRiskBadgeClass(analysis.risk_level)}`}>
-                {analysis.risk_level}
-              </span>
+        {analyzing && (
+          <div className="tactical-loader" style={{ animation: 'fadeIn 0.4s ease' }}>
+            <div className="scanner-ring" />
+            <div className="decoding-text">Analyzing Source Code</div>
+            <div style={{
+              fontSize: '10px',
+              color: 'var(--text-tertiary)',
+              fontFamily: 'var(--font-mono)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em'
+            }}>
+              Neural Auditor v2.0 // DECRYPTING LOGIC MATRICES
             </div>
           </div>
+        )}
 
-          <div className="analysis-header-grid">
-            <div className="analysis-stat">
-              <div className="analysis-stat-label">Contract Name</div>
-              <div className="analysis-stat-value">
-                {analysis.contract_name || 'Unknown'}
-              </div>
-            </div>
-            <div className="analysis-stat">
-              <div className="analysis-stat-label">Findings</div>
-              <div className="analysis-stat-value">
-                {analysis.vulnerabilities?.length || 0}
-              </div>
-            </div>
-            {analysis.cached && (
-              <div className="analysis-stat">
-                <div className="analysis-stat-label">Status</div>
-                <span className="auditor-severity-badge severity-info">Cached</span>
-              </div>
-            )}
-          </div>
-
-          <div className="analysis-section">
-            <h4>Summary</h4>
-            <div className="analysis-summary">
-              {analysis.summary}
-            </div>
-          </div>
-
-          {analysis.vulnerabilities && analysis.vulnerabilities.length > 0 && (
-            <div className="analysis-section">
-              <h4>Vulnerabilities Found ({analysis.vulnerabilities.length})</h4>
-              <div className="findings-list">
-                {analysis.vulnerabilities.map((vuln, index) => (
-                  <div
-                    key={index}
-                    className={`finding-card ${getSeverityClass(vuln.severity)} ${expandedFindings.has(index) ? 'expanded' : ''}`}
-                  >
-                    <button
-                      className="finding-header"
-                      onClick={() => toggleFinding(index)}
-                    >
-                      <div className="finding-header-left">
-                        <span className={`auditor-severity-badge ${getSeverityBadgeClass(vuln.severity)}`}>
-                          {vuln.severity}
-                        </span>
-                        <span className="finding-type">{vuln.type}</span>
-                      </div>
-                      <div className="finding-header-right">
-                        {vuln.line_number && vuln.line_number !== 'N/A' && (
-                          <span className="finding-line">Line {vuln.line_number}</span>
-                        )}
-                        <ChevronIcon expanded={expandedFindings.has(index)} />
-                      </div>
-                    </button>
-                    <div className={`finding-content ${expandedFindings.has(index) ? 'expanded' : ''}`}>
-                      <p className="finding-description">{vuln.description}</p>
+        {report && !analyzing && (
+          <div className="audit-report" style={{ animation: 'fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1.2fr 1fr',
+              gap: '24px',
+              marginBottom: '32px'
+            }}>
+              {/* Score & Summary Card */}
+              <div style={{
+                background: 'rgba(255,255,255,0.03)',
+                padding: '32px',
+                borderRadius: '16px',
+                border: '1px solid var(--border-subtle)',
+                position: 'relative'
+              }}>
+                <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
+                  <div style={{
+                    width: '100px',
+                    height: '100px',
+                    borderRadius: '50%',
+                    border: `4px solid ${getRiskColor(report.risk_level)}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '32px',
+                    fontWeight: '900',
+                    color: getRiskColor(report.risk_level),
+                    boxShadow: `0 0 30px ${getRiskColor(report.risk_level)}40`,
+                    fontFamily: 'var(--font-display)'
+                  }}>
+                    {report.safe_score}
+                  </div>
+                  <div>
+                    <div style={{ color: 'var(--text-tertiary)', fontSize: '11px', letterSpacing: '0.1em', marginBottom: '4px' }}>TRUST INDEX</div>
+                    <div style={{ fontSize: '24px', fontWeight: '900', color: 'white', letterSpacing: '0.05em' }}>{getStatusText(report.safe_score)}</div>
+                    <div style={{ color: getRiskColor(report.risk_level), fontSize: '12px', fontWeight: '800', marginTop: '4px', textTransform: 'uppercase' }}>
+                      RISK LEVEL: {report.risk_level}
                     </div>
                   </div>
-                ))}
+                </div>
+
+                <h4 style={{ fontSize: '12px', color: 'var(--accent-cyan)', marginBottom: '12px', letterSpacing: '0.1em' }}>SENTIMENT ANALYSIS</h4>
+                <p style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                  "{report.summary}"
+                </p>
+                <div style={{ marginTop: '16px', fontSize: '10px', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
+                  TARGET: {report.contract_name?.toUpperCase() || 'UNKNOWN SUBSTRATE'}
+                </div>
+              </div>
+
+              {/* Vulnerabilities List */}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <h4 style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '16px', fontFamily: 'var(--font-display)', letterSpacing: '0.1em' }}>
+                  FORENSIC MATRICES ({report.vulnerabilities?.length || 0})
+                </h4>
+                <div style={{ overflowY: 'auto', maxHeight: '380px', paddingRight: '8px' }}>
+                  {report.vulnerabilities && report.vulnerabilities.length > 0 ? (
+                    report.vulnerabilities.map((vuln, i) => (
+                      <VulnerabilityItem key={i} vuln={vuln} index={i} />
+                    ))
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '40px', background: 'rgba(0, 255, 157, 0.05)', borderRadius: '12px', border: '1px dashed var(--accent-success)' }}>
+                      <div style={{ fontSize: '24px', marginBottom: '8px' }}>✅</div>
+                      <div style={{ color: 'var(--accent-success)', fontWeight: 'bold', fontSize: '14px' }}>NO VULNERABILITIES DETECTED</div>
+                      <div style={{ color: 'var(--text-tertiary)', fontSize: '11px', marginTop: '4px' }}>CONTRACT STRUCTURE APPEARS ROBUST</div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          )}
-
-          {analysis.vulnerabilities && analysis.vulnerabilities.length === 0 && (
-            <div className="no-vulnerabilities-state">
-              <ShieldCheckIcon />
-              <div className="no-vulnerabilities-title">All Clear</div>
-              <div className="no-vulnerabilities-text">No vulnerabilities detected in this contract</div>
-            </div>
-          )}
-
-          {analysis.analyzed_at && (
-            <div className="analysis-timestamp">
-              Analyzed: {new Date(analysis.analyzed_at).toLocaleString()}
-            </div>
-          )}
-        </div>
-      )}
-
-      {!analysis && !loading && !error && (
-        <div className="empty-state">
-          Enter a contract address above to begin security analysis
-        </div>
-      )}
-    </div>
+          </div>
+        )}
+      </div>
+    </CyberCard>
   )
 }
 

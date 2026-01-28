@@ -1,260 +1,158 @@
 import { useState, useMemo } from 'react'
+import CyberCard from './CyberCard'
 
-// SVG Icons
-function SearchIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  )
-}
+// --- ICONS ---
+const SearchIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+)
 
-function ClearIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  )
-}
+const ScannerIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+  </svg>
+)
 
-function ExternalLinkIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-      <polyline points="15 3 21 3 21 9" />
-      <line x1="10" y1="14" x2="21" y2="3" />
-    </svg>
-  )
-}
-
-function ScannerIcon() {
-  return (
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 7V5a2 2 0 0 1 2-2h2" />
-      <path d="M17 3h2a2 2 0 0 1 2 2v2" />
-      <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
-      <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
-      <line x1="7" y1="12" x2="17" y2="12" />
-    </svg>
-  )
-}
-
-// Generate gradient avatar based on address hash
-function AddressAvatar({ address, size = 32 }) {
-  // Create a simple hash from the address for consistent colors
-  const hash = address.slice(2, 10)
-  const hue1 = parseInt(hash.slice(0, 4), 16) % 360
-  const hue2 = (hue1 + 40) % 360
-
-  const gradientId = `avatar-${address.slice(2, 10)}`
-
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32">
-      <defs>
-        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={`hsl(${hue1}, 70%, 60%)`} />
-          <stop offset="100%" stopColor={`hsl(${hue2}, 70%, 50%)`} />
-        </linearGradient>
-      </defs>
-      <circle cx="16" cy="16" r="16" fill={`url(#${gradientId})`} />
-      <text
-        x="16"
-        y="16"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill="white"
-        fontSize="10"
-        fontWeight="600"
-        fontFamily="var(--font-mono)"
-      >
-        {address.slice(2, 4).toUpperCase()}
-      </text>
-    </svg>
-  )
-}
-
-// Format relative time
+// --- HELPERS ---
 function getRelativeTime(timestamp) {
-  if (!timestamp) return 'just now'
-
+  if (!timestamp) return 'Just now'
   const now = Date.now()
-  // Handle Unix timestamps (seconds) vs milliseconds
   let time = typeof timestamp === 'number'
     ? (timestamp < 1e12 ? timestamp * 1000 : timestamp)
     : new Date(timestamp).getTime()
 
-  // If timestamp is invalid or in the future, show "just now"
-  if (isNaN(time) || time > now) return 'just now'
-
+  if (isNaN(time) || time > now) return 'Just now'
   const diff = now - time
   const seconds = Math.floor(diff / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
 
-  if (seconds < 5) return 'just now'
-  if (seconds < 60) return `${seconds}s ago`
-  if (minutes < 60) return `${minutes}m ago`
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
+  if (seconds < 5) return 'Just now'
+  if (seconds < 60) return `${seconds} seconds ago`
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`
+  return `${Math.floor(minutes / 60)}h ago`
 }
 
+// --- COMPONENT ---
 function LiveTransactionScanner({ transactions }) {
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Filter transactions based on search query
   const filteredTransactions = useMemo(() => {
-    if (!searchQuery.trim()) return transactions.slice(0, 25)
-
+    if (!searchQuery.trim()) return transactions.slice(0, 50)
     const query = searchQuery.toLowerCase().trim()
     return transactions.filter(tx =>
       tx.tx_hash?.toLowerCase().includes(query) ||
       tx.address?.toLowerCase().includes(query) ||
       tx.to_address?.toLowerCase().includes(query)
-    ).slice(0, 25)
+    ).slice(0, 50)
   }, [transactions, searchQuery])
 
-  const handleClear = () => {
-    setSearchQuery('')
-  }
-
-  // Get risk assessment
-  const getRiskLevel = (probability) => {
-    if (probability >= 0.7) return { level: 'Fraudulent', class: 'risk-fraudulent' }
-    if (probability >= 0.3) return { level: 'Suspicious', class: 'risk-suspicious' }
-    return { level: 'Safe', class: 'risk-safe' }
-  }
-
-  if (transactions.length === 0) {
-    return (
-      <div className="card scanner-panel">
-        <h3>Live Transaction Scanner</h3>
-        <div className="scanner-empty-state">
-          <ScannerIcon />
-          <div className="scanner-empty-title">Scanning Network</div>
-          <div className="scanner-empty-text">Waiting for transactions to appear...</div>
-        </div>
-      </div>
-    )
+  const getRiskColor = (prob) => {
+    if (prob >= 0.8) return 'var(--accent-danger)'
+    if (prob >= 0.5) return 'var(--warning)'
+    return 'var(--accent-success)'
   }
 
   return (
-    <div className="card scanner-panel">
-      <h3>Live Transaction Scanner</h3>
-
-      {/* Search Input */}
-      <div className="scanner-search-container">
-        <div className="scanner-search-wrapper">
-          <span className="scanner-search-icon">
-            <SearchIcon />
-          </span>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Enter transaction hash or wallet address"
-            className="scanner-search-input"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={handleClear}
-              className="scanner-search-clear"
-              title="Clear search"
-            >
-              <ClearIcon />
-            </button>
-          )}
+    <CyberCard title="NETWORK TRAFFIC" icon={<ScannerIcon />} style={{ height: '100%' }}>
+      {/* Search Bar */}
+      <div style={{ marginBottom: '16px', position: 'relative' }}>
+        <input
+          type="text"
+          placeholder="FILTER HASH / ADDRESS..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{
+            width: '100%',
+            background: 'rgba(0,0,0,0.3)',
+            border: '1px solid var(--border-subtle)',
+            padding: '10px 12px 10px 36px',
+            color: 'white',
+            fontFamily: 'var(--font-mono)',
+            borderRadius: '6px',
+            outline: 'none',
+            fontSize: '13px'
+          }}
+        />
+        <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }}>
+          <SearchIcon />
         </div>
       </div>
 
-      <div className="scanner-info">
-        {searchQuery
-          ? `${filteredTransactions.length} result${filteredTransactions.length !== 1 ? 's' : ''} found`
-          : 'Showing last 25 scanned transactions'
-        }
+      {/* List Header */}
+      <div style={{ display: 'grid', gridTemplateColumns: '120px 1.5fr 1fr 100px 100px', padding: '0 8px 8px', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-tertiary)', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
+        <div>ELAPSED</div>
+        <div>TRANSACTION / SOURCE</div>
+        <div>DESTINATION</div>
+        <div style={{ textAlign: 'right' }}>VALUE</div>
+        <div style={{ textAlign: 'right' }}>RISK SCORE</div>
       </div>
 
-      {/* Transaction List */}
-      <div className="scanner-transactions-scroll">
-        <div className="scanner-transactions-list">
-          {filteredTransactions.map((tx) => {
-            const risk = getRiskLevel(tx.probability)
-            const fromAddress = tx.address || '0x0000000000000000000000000000000000000000'
+      {/* List Itmes */}
+      <div className="scanner-list" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {filteredTransactions.map((tx, index) => {
+          const riskColor = getRiskColor(tx.probability || 0);
+          // Only flash the first item if it's "new" (less than 5 seconds old or simply the 0th index of a fresh list)
+          const isNew = index === 0 && (!tx.timestamp || (Date.now() - (typeof tx.timestamp === 'number' ? (tx.timestamp < 1e12 ? tx.timestamp * 1000 : tx.timestamp) : new Date(tx.timestamp).getTime())) < 5000);
 
-            return (
-              <div key={tx.tx_hash} className={`scanner-tx-card ${risk.class}`}>
-                {/* Header: Address + Risk */}
-                <div className="scanner-tx-header">
-                  <div className="scanner-address">
-                    <AddressAvatar address={fromAddress} size={32} />
-                    <span className="scanner-address-hash font-mono">
-                      {fromAddress.slice(0, 6)}...{fromAddress.slice(-4)}
-                    </span>
-                  </div>
-                  <div className="scanner-tx-risk">
-                    <span className={`scanner-risk-badge ${risk.class}`}>
-                      {risk.level}
-                    </span>
-                    <span className="scanner-risk-score">
-                      {(tx.probability * 100).toFixed(1)}%
-                    </span>
-                  </div>
+          return (
+            <div key={tx.tx_hash}
+              className={isNew ? 'new-item-flash' : ''}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '120px 1.5fr 1fr 100px 100px',
+                padding: '12px 8px',
+                background: 'rgba(255,255,255,0.02)',
+                borderLeft: `2px solid ${riskColor}`,
+                borderRadius: '0 4px 4px 0',
+                alignItems: 'center',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12px',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              <div style={{
+                color: isNew ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                fontWeight: isNew ? 'bold' : 'normal',
+                fontSize: '11px'
+              }}>
+                {getRelativeTime(tx.timestamp)}
+              </div>
+
+              <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: '12px' }}>
+                <div style={{ color: 'var(--accent-cyan)', marginBottom: '2px' }}>
+                  {tx.tx_hash ? `${tx.tx_hash.slice(0, 10)}...` : 'Processing...'}
                 </div>
-
-                {/* Gas Progress */}
-                {tx.gas_used && tx.gas_limit && (
-                  <div className="scanner-gas-info">
-                    <div className="scanner-gas-header">
-                      <span className="scanner-gas-label">Gas</span>
-                      <span className="scanner-gas-value">
-                        {((tx.gas_used / tx.gas_limit) * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                    <div className="scanner-gas-bar">
-                      <div
-                        className="scanner-gas-fill"
-                        style={{ width: `${Math.min((tx.gas_used / tx.gas_limit) * 100, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Footer: Meta + Actions */}
-                <div className="scanner-tx-footer">
-                  <div className="scanner-tx-meta">
-                    <span className="scanner-tx-time">{getRelativeTime(tx.timestamp)}</span>
-                    {tx.block_number && (
-                      <>
-                        <span className="scanner-meta-divider">•</span>
-                        <span className="scanner-tx-block">Block {tx.block_number.toLocaleString()}</span>
-                      </>
-                    )}
-                  </div>
-
-                  <a
-                    href={`https://etherscan.io/tx/0x${tx.tx_hash}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="scanner-etherscan-btn"
-                  >
-                    <span>View on Etherscan</span>
-                    <ExternalLinkIcon />
-                  </a>
+                <div style={{ color: 'var(--text-tertiary)', fontSize: '11px' }}>
+                  {tx.address ? `${tx.address.slice(0, 6)}...${tx.address.slice(-4)}` : 'UNKNOWN'}
                 </div>
               </div>
-            )
-          })}
-        </div>
 
-        {filteredTransactions.length === 0 && searchQuery && (
-          <div className="scanner-no-results">
-            <p>No transactions found matching "{searchQuery}"</p>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {tx.to_address ? `${tx.to_address.slice(0, 6)}...${tx.to_address.slice(-4)}` : 'CONTRACT_VOID'}
+              </div>
+
+              <div style={{ textAlign: 'right', color: 'var(--accent-purple)', fontWeight: 'bold', fontSize: '11px' }}>
+                {tx.value ? parseFloat(tx.value).toFixed(4) : '0.0000'} ETH
+              </div>
+
+              <div style={{ textAlign: 'right', fontWeight: 'bold', color: riskColor }}>
+                {((tx.probability || 0) * 100).toFixed(1)}%
+              </div>
+            </div>
+          )
+        })}
+
+        {transactions.length === 0 && (
+          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
+                 // LISTENING FOR BLOCKS...
+            <br />
+            <span style={{ fontSize: '24px', display: 'block', marginTop: '12px', animation: 'pulse 1.5s infinite' }}>●</span>
           </div>
         )}
       </div>
-    </div>
+    </CyberCard>
   )
 }
 

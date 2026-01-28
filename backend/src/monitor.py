@@ -42,6 +42,8 @@ def setup_databse():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             "timestamp" DATETIME DEFAULT CURRENT_TIMESTAMP,
             "address" TEXT NOT NULL,
+            "to_address" TEXT,
+            "value" TEXT,
             "tx_hash" TEXT NOT NULL UNIQUE,
             "probability" DOUBLE NOT NULL
         )
@@ -50,12 +52,12 @@ def setup_databse():
     conn.commit()
     conn.close()
 
-def log_transaction(address, tx_hash, probability):
+def log_transaction(address, to_address, value, tx_hash, probability):
     conn = sqlite3.connect(alerts_path)
     cursor = conn.cursor()
 
-    data = (address, tx_hash, probability)
-    sql = "INSERT OR IGNORE INTO alerts (address, tx_hash, probability) VALUES (?, ?, ?)"
+    data = (address, to_address, value, tx_hash, probability)
+    sql = "INSERT OR IGNORE INTO alerts (address, to_address, value, tx_hash, probability) VALUES (?, ?, ?, ?, ?)"
 
     cursor.execute(sql, data)
 
@@ -72,7 +74,7 @@ def clean_database():
         ''')
 
     except Exception as e:
-        print(f"❌ Cleanup Error: {e}")
+        print(f"Cleanup Error: {e}")
 
     conn.commit()
     conn.close()
@@ -112,7 +114,8 @@ def main_loop():
 
                             fraud_probability = model.predict_proba(final_vector)[0][1]
 
-                            log_transaction(from_addr, tx['hash'].hex(), fraud_probability)
+                            value_eth = w3.from_wei(tx['value'], 'ether')
+                            log_transaction(from_addr, tx['to'], str(value_eth), tx['hash'].hex(), fraud_probability)
 
                             if fraud_probability >= 0.3:
                                 print(f"🚨 FRAUD ALERT! (Probability: {fraud_probability})")

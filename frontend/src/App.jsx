@@ -6,40 +6,23 @@ import SmartContractAnalysis from './components/SmartContractAnalysis'
 import WalletWatcher from './components/WalletWatcher'
 import './App.css'
 
-// Icon components for sidebar
+// --- ICONS ---
 const ScannerIcon = () => (
   <svg className="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 7V5a2 2 0 0 1 2-2h2" />
-    <path d="M17 3h2a2 2 0 0 1 2 2v2" />
-    <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
-    <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
-    <line x1="7" y1="12" x2="17" y2="12" />
+    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
   </svg>
 )
 
 const AuditorIcon = () => (
   <svg className="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-    <polyline points="14 2 14 8 20 8" />
-    <line x1="16" y1="13" x2="8" y2="13" />
-    <line x1="16" y1="17" x2="8" y2="17" />
-    <polyline points="10 9 9 9 8 9" />
+    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
   </svg>
 )
 
 const WalletIcon = () => (
   <svg className="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
-    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
-    <path d="M18 12a2 2 0 0 0 0 4h4v-4z" />
-  </svg>
-)
-
-const AlertIcon = () => (
-  <svg className="alert-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-    <line x1="12" y1="9" x2="12" y2="13" />
-    <line x1="12" y1="17" x2="12.01" y2="17" />
+    <rect x="2" y="5" width="20" height="14" rx="2" />
+    <line x1="2" y1="10" x2="22" y2="10" />
   </svg>
 )
 
@@ -51,13 +34,13 @@ const BlockIcon = () => (
 
 const ReconLogo = () => (
   <svg className="sidebar-logo-icon" viewBox="0 0 40 40" fill="none">
-    <circle cx="20" cy="20" r="18" stroke="url(#logoGradient)" strokeWidth="2" fill="none" />
-    <path d="M12 20h16M20 12v16M14 14l12 12M26 14L14 26" stroke="url(#logoGradient)" strokeWidth="1.5" strokeLinecap="round" />
-    <circle cx="20" cy="20" r="4" fill="url(#logoGradient)" />
+    <circle cx="20" cy="20" r="18" stroke="url(#logoGradient)" strokeWidth="2" />
+    <path d="M20 10v20M10 20h20" stroke="url(#logoGradient)" strokeWidth="2" strokeLinecap="square" />
+    <rect x="14" y="14" width="12" height="12" stroke="url(#logoGradient)" strokeWidth="2" transform="rotate(45 20 20)" />
     <defs>
       <linearGradient id="logoGradient" x1="0" y1="0" x2="40" y2="40">
-        <stop offset="0%" stopColor="#00d4ff" />
-        <stop offset="100%" stopColor="#00ff88" />
+        <stop offset="0%" stopColor="#00f0ff" />
+        <stop offset="100%" stopColor="#bd00ff" />
       </linearGradient>
     </defs>
   </svg>
@@ -67,20 +50,23 @@ function App() {
   const [alerts, setAlerts] = useState([])
   const [serverStatus, setServerStatus] = useState("Checking...")
   const [currentPage, setCurrentPage] = useState('transaction-scanner')
-  const [showLanding, setShowLanding] = useState(true)
   const [latestBlock, setLatestBlock] = useState(null)
+
+  // Start directly on dashboard for development speed (skip landing for now during dev, or keep it)
+  // For verify we might want to see landing page but user asked for overhaul, so maybe landing page needs love too?
+  // Let's keep existing flow: Landing first.
+  const [showLanding, setShowLanding] = useState(true)
 
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        const apiUrl = "http://localhost:8000";
+        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
         const res = await fetch(`${apiUrl}/api/get-alerts`);
         const data = await res.json()
 
         setAlerts(data)
         setServerStatus("Online")
 
-        // Extract latest block from transactions if available
         if (data && data.length > 0 && data[0].block_number) {
           setLatestBlock(data[0].block_number)
         }
@@ -95,94 +81,101 @@ function App() {
     return () => clearInterval(intervalId)
   }, [])
 
-  // Count fraud alerts
   const fraudCount = alerts.filter(tx => tx.prediction === 1 || tx.is_fraud).length
+  const isOnline = serverStatus === "Online"
 
   if (showLanding) {
     return <LandingPage onEnter={() => setShowLanding(false)} />
   }
 
-  const isOnline = serverStatus === "Online"
-
   return (
     <div className="app-container">
-      {/* Sidebar */}
+      <div className="app-bg-grid" />
+
+      {/* COMMAND BAR (Sidebar) */}
       <aside className="sidebar">
         <div className="sidebar-logo">
           <ReconLogo />
-          <span className="sidebar-logo-text">RECON</span>
         </div>
 
         <nav className="sidebar-nav">
           <button
             className={`sidebar-nav-item ${currentPage === 'transaction-scanner' ? 'active' : ''}`}
             onClick={() => setCurrentPage('transaction-scanner')}
-            data-tooltip="Scanner"
+            data-tooltip="Live Scanner"
           >
             <ScannerIcon />
-            <span className="sidebar-nav-label">Scanner</span>
           </button>
 
           <button
             className={`sidebar-nav-item ${currentPage === 'contract-analysis' ? 'active' : ''}`}
             onClick={() => setCurrentPage('contract-analysis')}
-            data-tooltip="Auditor"
+            data-tooltip="Contract Auditor"
           >
             <AuditorIcon />
-            <span className="sidebar-nav-label">Auditor</span>
           </button>
 
           <button
             className={`sidebar-nav-item ${currentPage === 'wallet-watcher' ? 'active' : ''}`}
             onClick={() => setCurrentPage('wallet-watcher')}
-            data-tooltip="Wallet"
+            data-tooltip="Wallet Watcher"
           >
             <WalletIcon />
-            <span className="sidebar-nav-label">Wallet</span>
           </button>
         </nav>
       </aside>
 
-      {/* Main Wrapper */}
+      {/* MAIN CONTENT */}
       <div className="main-wrapper">
-        {/* Top Stats Bar */}
         <header className="stats-bar">
           <div className="stats-bar-left">
-            <div className="stat-item">
-              <BlockIcon />
-              <span className="stat-label">Block</span>
-              <span className="stat-value">{latestBlock ? latestBlock.toLocaleString() : '---'}</span>
-            </div>
-
-            <div className="stat-divider" />
-
-            <div className="connection-status">
-              <span className={`status-dot ${isOnline ? 'online' : 'offline'}`} />
-              <span className={`connection-text ${isOnline ? 'online' : 'offline'}`}>
-                {isOnline ? 'Connected' : 'Disconnected'}
-              </span>
-            </div>
+            <h2 style={{ fontSize: '18px', margin: 0, color: 'white' }}>
+              {currentPage === 'transaction-scanner' && 'LIVE DETECTOR'}
+              {currentPage === 'contract-analysis' && 'CONTRACT AUDIT'}
+              {currentPage === 'wallet-watcher' && 'WALLET WATCHER'}
+            </h2>
           </div>
 
           <div className="stats-bar-right">
-            <div className={`alert-badge ${fraudCount === 0 ? 'no-alerts' : ''}`}>
-              <AlertIcon />
-              <span>{fraudCount} {fraudCount === 1 ? 'Alert' : 'Alerts'}</span>
+            <div className="stat-item">
+              <BlockIcon />
+              <span className="stat-label">Block Height:</span>
+              <span className="stat-value">{latestBlock ? latestBlock.toLocaleString() : 'Loading...'}</span>
+            </div>
+
+            <div className={`connection-status`}>
+              <span className={`status-dot ${isOnline ? 'online' : 'offline'}`} />
+              <span className={`connection-text ${isOnline ? 'online' : 'offline'}`}>
+                {isOnline ? 'Mainnet Connected' : 'Reconnecting...'}
+              </span>
             </div>
           </div>
         </header>
 
-        {/* Main Content */}
         <main className="main-content">
           <div className="dashboard-grid">
             {currentPage === 'transaction-scanner' && (
               <>
-                <LiveTransactionScanner transactions={alerts} />
-                <FraudAlerts allTransactions={alerts} />
+                <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+                  <LiveTransactionScanner transactions={alerts} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+                  <FraudAlerts allTransactions={alerts} />
+                </div>
               </>
             )}
-            {currentPage === 'contract-analysis' && <SmartContractAnalysis />}
-            {currentPage === 'wallet-watcher' && <WalletWatcher />}
+
+            {currentPage === 'contract-analysis' && (
+              <div style={{ gridColumn: '1 / -1' }}>
+                <SmartContractAnalysis />
+              </div>
+            )}
+
+            {currentPage === 'wallet-watcher' && (
+              <div style={{ gridColumn: '1 / -1' }}>
+                <WalletWatcher />
+              </div>
+            )}
           </div>
         </main>
       </div>
