@@ -2,14 +2,13 @@ import os
 from dotenv import load_dotenv
 
 import requests
-import ast
 import pandas as pd
 import numpy as np
 
 from io import StringIO
 
 
-env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+env_path = os.path.join(os.path.dirname(__file__), '..', '..', '.env')
 load_dotenv(env_path)
 
 ETHERSCAN_API_KEY = os.environ.get('ETHERSCAN_API_KEY')

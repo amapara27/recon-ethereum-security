@@ -19,17 +19,17 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./backend/
 
 # Create necessary directories for databases and models
-RUN mkdir -p backend/models backend/data && \
-    touch backend/alerts.db backend/contract_cache.db
+RUN mkdir -p backend/app/models backend/data backend/database && \
+    touch backend/database/alerts.db backend/database/contract_cache.db
 
 # Create startup script to run both monitor and API server
 RUN echo '#!/bin/bash\n\
 set -e\n\
-python backend/src/monitor.py &\n\
+python backend/app/services/monitor.py &\n\
 MONITOR_PID=$!\n\
-python backend/src/api.py &\n\
+python backend/app/api/api.py &\n\
 API_PID=$!\n\
-wait $API_PID\n\
+wait $API_PID $MONITOR_PID\n\
 ' > /app/start.sh && chmod +x /app/start.sh
 
 # Expose port for FastAPI
