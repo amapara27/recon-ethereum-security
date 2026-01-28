@@ -57,12 +57,11 @@ def get_latest_alerts(limit: int = 200):
 
         alerts = []
         for entry in entries:
-            # The database timestamp is in UTC. We ensure it's formatted as ISO 8601 UTC.
             db_ts = entry['timestamp']
             if ' ' in db_ts:
                 iso_ts = db_ts.replace(' ', 'T') + 'Z'
             else:
-                iso_ts = db_ts # Already formatted or unknown
+                iso_ts = db_ts
 
             alert = {
                 'id': entry['id'],
