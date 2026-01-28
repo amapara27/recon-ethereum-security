@@ -1,6 +1,6 @@
 import sqlite3
 import uvicorn
-from datetime import datetime, timedelta
+
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -56,17 +56,20 @@ def get_latest_alerts(limit: int = 200):
             ''', (limit,))
 
         alerts = []
-        now = datetime.now()
+        for entry in entries:
+            # The database timestamp is in UTC. We ensure it's formatted as ISO 8601 UTC.
+            db_ts = entry['timestamp']
+            if ' ' in db_ts:
+                iso_ts = db_ts.replace(' ', 'T') + 'Z'
+            else:
+                iso_ts = db_ts # Already formatted or unknown
 
-        for i, entry in enumerate(entries):
-            # Stagger timestamps: newest first, each one 10 seconds older
-            tx_time = now - timedelta(seconds=i * 10)
             alert = {
                 'id': entry['id'],
                 'address': entry['address'],
                 'to_address': entry['to_address'],
                 'value': entry['value'],
-                'timestamp': tx_time.isoformat(),
+                'timestamp': iso_ts,
                 'tx_hash': entry['tx_hash'],
                 'probability': entry['probability']
             }
