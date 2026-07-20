@@ -1,3 +1,0 @@
-function Profile({wallet}) {
-    return
-}
