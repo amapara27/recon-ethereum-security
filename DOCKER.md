@@ -28,7 +28,19 @@ docker-compose up --build
 The Docker setup includes:
 
 ### Services
-- **backend**: FastAPI server + Blockchain monitor
+- **api**: FastAPI server (alerts + contract analyzer), exposed on port 8000
+- **monitor**: Blockchain monitor that scores new addresses
+
+They run as separate containers from the same image, so the monitor can be
+stopped independently to halt Alchemy/Etherscan usage while the API stays up:
+
+```bash
+docker compose stop monitor    # pause scanning
+docker compose start monitor   # resume
+```
+
+Note: `/api/get-alerts` only returns alerts from the last 24 hours, so pausing
+the monitor for more than a day leaves the dashboard empty (the rows remain on disk).
 
 ### Volumes (Persistent Data)
 - `alerts.db`: Fraud detection alerts database
@@ -70,7 +82,8 @@ docker-compose logs -f
 docker-compose logs --tail=100
 
 # Specific service
-docker-compose logs -f backend
+docker-compose logs -f api
+docker-compose logs -f monitor
 ```
 
 ### Stop Services
@@ -99,7 +112,8 @@ curl http://localhost:8000/docs
 ### Container won't start
 ```bash
 # Check logs
-docker-compose logs backend
+docker-compose logs api
+docker-compose logs monitor
 
 # Verify environment variables
 docker-compose config
@@ -123,10 +137,10 @@ docker-compose restart
 docker-compose ps
 
 # Check container health
-docker inspect recon-backend | grep Health
+docker inspect eth_fraud_detector-api-1 | grep Health
 
 # Restart service
-docker-compose restart backend
+docker-compose restart api
 ```
 
 ## Production Deployment
@@ -140,7 +154,11 @@ For production (AWS EC2, etc.):
 5. Use Docker secrets for sensitive data
 6. Configure automatic backups for database volumes
 
-Note: the container's startup script launches both the blockchain `monitor` service and the FastAPI `api` service and is configured to wait for both processes. For more robust per-process supervision, logging, and auto-restart behavior consider running the monitor as a separate Compose service or using a process manager like `supervisord` in production.
+Note: `api` and `monitor` run as separate Compose services, so each has its own
+logs and `restart: always` policy — a monitor crash restarts the monitor alone
+and never takes the API down with it. The image's `CMD` (`start.sh`, which runs
+both processes together) is unused by Compose; it only applies if you run the
+image directly with `docker run`.
 
 Example production command:
 ```bash

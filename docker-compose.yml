@@ -1,21 +1,17 @@
-version: '3.8'
-
 services:
-  backend:
+  # FastAPI server — serves alerts and the contract analyzer
+  api:
     build:
       context: .
       dockerfile: Dockerfile
+    command: python backend/app/api/api.py
     ports:
       - "8000:8000"
     volumes:
-      # Persistent database for fraud alerts
+      # Fraud alerts written by the monitor, read here
       - ./backend/database/alerts.db:/app/backend/database/alerts.db
-      # Cache database for smart contract analyses (reduces API costs)
+      # Cache of smart contract analyses (reduces API costs)
       - ./backend/database/contract_cache.db:/app/backend/database/contract_cache.db
-      # Pre-trained ML models
-      - ./backend/app/models:/app/backend/app/models
-      # Address lists (whitelists, blacklists, etc.)
-      - ./backend/app/config/lists:/app/backend/app/config/lists
     env_file:
       - ./backend/.env
     environment:
@@ -27,3 +23,22 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  # Blockchain monitor — scores new addresses. Stop this alone to halt
+  # Alchemy/Etherscan usage: docker compose stop monitor
+  monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python backend/app/services/monitor.py
+    volumes:
+      - ./backend/database/alerts.db:/app/backend/database/alerts.db
+      # Pre-trained ML model
+      - ./backend/app/models:/app/backend/app/models
+      # Address lists (whitelists, blacklists, etc.)
+      - ./backend/app/config/lists:/app/backend/app/config/lists
+    env_file:
+      - ./backend/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
