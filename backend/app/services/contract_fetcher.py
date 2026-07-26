@@ -25,7 +25,8 @@ def fetch_source_code(address):
     verify_response = requests.get(url, params = verify_query)
     verify_response = verify_response.json()
 
-    if verify_response.get("status") == 0:
+    # Etherscan returns status as string "0", not int (unverified contract or API error)
+    if verify_response.get("status") == "0":
         return "High Risk / Unknown"
     
     sc_query = {
@@ -41,7 +42,11 @@ def fetch_source_code(address):
 
     result = sc_response.get("result")
 
-    return result[0]["SourceCode"]
+    # On API errors result is a string, not a list — treat as not found instead of crashing
+    if not isinstance(result, list) or not result:
+        return ""
+
+    return result[0].get("SourceCode", "")
 
 def main():
     print(fetch_source_code("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"))

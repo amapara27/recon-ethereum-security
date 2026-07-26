@@ -166,11 +166,9 @@ def analyze_smart_contract(source_code, contract_address=None, use_cache=True):
         return analysis_result
 
     except Exception as e:
+        # Log details server-side only — don't leak internals to clients
         print(f"Error analyzing contract: {e}")
-        return {
-            "error": "Failed to analyze contract",
-            "details": str(e)
-        }
+        return {"error": "Failed to analyze contract"}
     
 def main():
     honeypot_address = "0x34C6211621f2763c60Eb007dC2aE91090A2d22f6"
