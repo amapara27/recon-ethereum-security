@@ -2,15 +2,15 @@ import { useEffect, useState } from 'react'
 
 const KEY = 'recon-theme'
 
-// Reads the theme the pre-paint script in index.html already applied to <html>.
+// Reads the theme the pre-paint script in index.html already put on <html data-theme>.
 function initialTheme() {
-  if (typeof document !== 'undefined' && document.documentElement.classList.contains('dark')) {
-    return 'dark'
+  if (typeof document !== 'undefined' && document.documentElement.dataset.theme) {
+    return document.documentElement.dataset.theme
   }
   try {
-    return localStorage.getItem(KEY) || 'light'
+    return localStorage.getItem(KEY) || 'dark'
   } catch {
-    return 'light'
+    return 'dark'
   }
 }
 
@@ -18,7 +18,7 @@ export function useTheme() {
   const [theme, setTheme] = useState(initialTheme)
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
+    document.documentElement.dataset.theme = theme
     try {
       localStorage.setItem(KEY, theme)
     } catch {

@@ -1,17 +1,17 @@
-import { getRisk } from '../lib/risk'
+import { riskColor } from '../lib/risk'
 import { formatPct } from '../lib/format'
 
-// Risk is never encoded by color alone — the % and a label always accompany the color.
-export default function RiskBadge({ probability, showPct = true, size = 'sm' }) {
-  const risk = getRisk(probability)
-  const pad = size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm'
+// Risk is never encoded by color alone — the % always accompanies the color.
+export default function RiskBadge({ probability }) {
+  const color = riskColor(probability)
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border font-medium ${risk.text} ${risk.border} ${pad}`}
+      className="mono inline-flex items-center gap-[5px] rounded-full border px-2 py-[2px] text-[11.5px]"
+      style={{ borderColor: color, color }}
       title={`Fraud probability ${formatPct(probability)}`}
     >
-      <span className={`size-1.5 rounded-full ${risk.bg}`} aria-hidden="true" />
-      {showPct ? <span className="tabular font-mono">{formatPct(probability)}</span> : risk.label}
+      <span className="size-[5px] rounded-full" style={{ background: color }} aria-hidden="true" />
+      {formatPct(probability)}
     </span>
   )
 }

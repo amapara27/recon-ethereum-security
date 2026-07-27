@@ -1,14 +1,15 @@
 import { Sun, Moon } from 'lucide-react'
 
-export default function ThemeToggle({ theme, onToggle }) {
+export default function ThemeToggle({ theme, onToggle, size = 36 }) {
   const isDark = theme === 'dark'
   return (
     <button
       onClick={onToggle}
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      className="grid size-9 place-items-center rounded-lg border border-line bg-surface text-muted transition-colors hover:text-ink"
+      className="btn btn-secondary btn-icon"
+      style={{ width: size, height: size }}
     >
-      {isDark ? <Sun size={17} /> : <Moon size={17} />}
+      {isDark ? <Sun size={16} /> : <Moon size={16} />}
     </button>
   )
 }

@@ -1,125 +1,207 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
-/* Class-based dark mode: `dark:` utilities respond to `.dark` on <html>, not the OS setting */
-@custom-variant dark (&:where(.dark, .dark *));
-
-/* --- Semantic design tokens (light = :root, dark = .dark) --- */
+/* ══════════════════════════════════════════════════════════════════════════
+   Nocturne design-system tokens (from the Recon UI Upgrade design project).
+   Dark is the base theme; [data-theme="light"] on <html> overrides it.
+   ══════════════════════════════════════════════════════════════════════ */
 :root {
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --surface-2: #f1f5f9;
-  --border: #e2e8f0;
-  --text: #0f172a;
-  --text-muted: #64748b;
-  --accent: #6366f1;
-  --accent-hover: #7c6cf6;
-  --accent-fg: #ffffff;
-  --accent-soft: rgba(99, 102, 241, 0.1);
-  --risk-high: #dc2626;
-  --risk-med: #d97706;
-  --risk-safe: #16a34a;
-  --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04);
+  --color-bg: #161826;
+  --color-surface: #232532;
+  --surface-2: #2a2d3d;
+  --color-text: #e9e9ed;
+  --color-accent: #9184d9;
+  --color-accent-400: #b5abfc;
+  --color-divider: color-mix(in srgb, #e9e9ed 16%, transparent);
+
+  --color-neutral-100: #f3f5fe;
+  --color-neutral-800: #3f424d;
+
+  /* Deck-scale ground — the landing stats band only, not an interface color */
+  --color-section: #262a60;
+
+  --risk-high: oklch(0.70 0.165 25);
+  --risk-med: oklch(0.79 0.135 78);
+  --risk-safe: oklch(0.75 0.135 155);
+
+  --font-heading: "Inter", system-ui, sans-serif;
+  --font-heading-weight: 500;
+  --font-body: "Inter", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 0 0 1px #3f424d;
+  --shadow-md: 0 0 0 1px #595d6c, 0 6px 18px rgba(0, 0, 0, 0.55);
 }
 
-.dark {
-  --bg: #0a0b0f;
-  --surface: #14161d;
-  --surface-2: #1b1e27;
-  --border: rgba(255, 255, 255, 0.08);
-  --text: #edeef2;
-  --text-muted: #8a8f9c;
-  --accent: #6366f1;
-  --accent-hover: #7c6cf6;
-  --accent-fg: #ffffff;
-  --accent-soft: rgba(99, 102, 241, 0.15);
-  --risk-high: #ef4444;
-  --risk-med: #f59e0b;
-  --risk-safe: #22c55e;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+[data-theme="light"] {
+  --color-bg: #e7eaf6;
+  --color-surface: #f6f7fd;
+  --surface-2: #eceffa;
+  --color-text: #292b31;
+  --color-accent: #5d5294;
+  --color-accent-400: #796cbf;
+  --color-divider: color-mix(in srgb, #292b31 14%, transparent);
+  --color-neutral-100: #f6f7fd;
+  --color-neutral-800: #5c5783;
+  --risk-high: oklch(0.52 0.19 25);
+  --risk-med: oklch(0.56 0.13 70);
+  --risk-safe: oklch(0.50 0.13 155);
+  --shadow-sm: 0 0 0 1px color-mix(in srgb, #292b31 10%, transparent);
+  --shadow-md: 0 0 0 1px color-mix(in srgb, #292b31 12%, transparent), 0 6px 18px rgba(41, 43, 49, .10);
 }
 
-/* --- Expose tokens to Tailwind (inline = utilities reference the runtime var, so they theme-switch) --- */
+/* Expose tokens to Tailwind (inline = utilities read the runtime var, so they theme-switch) */
 @theme inline {
-  --color-app: var(--bg);
-  --color-surface: var(--surface);
+  --color-app: var(--color-bg);
+  --color-surface: var(--color-surface);
   --color-elevated: var(--surface-2);
-  --color-line: var(--border);
-  --color-ink: var(--text);
-  --color-muted: var(--text-muted);
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-fg: var(--accent-fg);
-  --color-accent-soft: var(--accent-soft);
+  --color-line: var(--color-divider);
+  --color-ink: var(--color-text);
+  --color-muted: color-mix(in srgb, var(--color-text) 55%, transparent);
+  --color-accent: var(--color-accent);
+  --color-accent-soft: color-mix(in srgb, var(--color-accent) 14%, transparent);
   --color-risk-high: var(--risk-high);
   --color-risk-med: var(--risk-med);
   --color-risk-safe: var(--risk-safe);
+  --color-section: var(--color-section);
 
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
 }
 
 @layer base {
-  * {
-    border-color: var(--border);
-  }
+  *, *::before, *::after { box-sizing: border-box; }
 
   body {
-    background-color: var(--bg);
-    color: var(--text);
-    font-family: var(--font-sans);
-    min-height: 100dvh;
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
-    line-height: 1.5;
   }
 
-  /* Mono numerics don't jitter in tables */
-  .tabular {
-    font-variant-numeric: tabular-nums;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    margin: 0;
   }
+  h1 { font-size: 42px; }
+  h2 { font-size: 32px; }
+  h3 { font-size: 25px; }
+  h4 { font-size: 20px; }
+  h6 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
 
-  /* Consistent accessible focus ring */
-  :focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
+  a { color: var(--color-accent); text-underline-offset: 3px; }
+  a:hover { color: var(--color-accent-400); }
 
-  ::selection {
-    background: var(--accent-soft);
-  }
-
-  /* Scrollbars */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 4px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--text-muted);
-  }
+  :focus { outline: none; }
+  :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  ::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
 }
 
-/* Subtle highlight when a new alert row enters the table */
-@keyframes row-flash {
-  from { background-color: var(--accent-soft); }
-  to { background-color: transparent; }
+/* ── Nocturne component classes ──────────────────────────────────────────
+   In @layer components on purpose: Tailwind's utilities layer comes after, so a
+   utility (px-4, flex-row, bg-app…) still overrides the class it lands on.
+   ══════════════════════════════════════════════════════════════════════ */
+@layer components {
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  cursor: pointer; text-decoration: none;
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-size: 14px; line-height: 1.2; color: var(--color-text);
+  background: transparent; border: 1px solid transparent;
+  padding: 5.6px 10px; border-radius: var(--radius-md);
 }
-.row-flash {
-  animation: row-flash 1.4s ease-out;
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { color: var(--color-accent); border-color: var(--color-accent); }
+.btn-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--color-accent) 12%, transparent); }
+.btn-primary:active:not(:disabled) { background: color-mix(in srgb, var(--color-accent) 22%, transparent); }
+.btn-secondary { border-color: var(--color-divider); }
+.btn-secondary:hover:not(:disabled) { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.btn-ghost { color: var(--color-accent); padding-inline: 2.8px; }
+.btn-ghost:hover:not(:disabled) { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.btn-icon { width: 36px; height: 36px; padding: 0; }
+.btn-block { width: 100%; }
+
+.input {
+  width: 100%; min-height: 36px; padding: 6px 10px; font: inherit;
+  font-size: 14px; color: var(--color-text); caret-color: var(--color-accent);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider); border-radius: var(--radius-md);
 }
+.input::placeholder { color: color-mix(in srgb, var(--color-text) 42%, transparent); }
+.input:hover { border-color: color-mix(in srgb, var(--color-text) 45%, transparent); }
+.input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
+
+.card {
+  display: flex; flex-direction: column;
+  background: var(--color-surface); border-radius: var(--radius-md);
+}
+.elev-sm { box-shadow: var(--shadow-sm); }
+.elev-md { box-shadow: var(--shadow-md); }
+
+.tag {
+  display: inline-flex; align-items: center; font-size: 11px;
+  letter-spacing: 0.02em; padding: 3px 10px; border-radius: 6px;
+}
+.tag-neutral { background: var(--color-neutral-800); color: var(--color-neutral-100); }
+
+.seg {
+  display: inline-flex; overflow: hidden;
+  border: 1px solid var(--color-divider); border-radius: var(--radius-md);
+}
+.seg-opt {
+  display: inline-flex; align-items: center; padding: 0 10px;
+  font-size: 12px; cursor: pointer;
+  color: color-mix(in srgb, var(--color-text) 65%, transparent);
+}
+.seg-opt + .seg-opt { border-left: 1px solid var(--color-divider); }
+.seg-opt input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+.seg-opt:has(input:checked) { color: var(--color-accent); box-shadow: inset 0 0 0 1px var(--color-accent); }
+.seg-opt:not(:has(input:checked)):hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.seg-opt:has(input:focus-visible) { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+
+/* ── Recon-specific ──────────────────────────────────────────────────── */
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.rc-row:hover { background: color-mix(in srgb, var(--color-text) 5%, transparent); }
+.rc-nav:hover { background: color-mix(in srgb, var(--color-text) 6%, transparent); }
+.rc-chip:hover { border-color: var(--color-accent); }
+.rc-scroll { scrollbar-width: thin; scrollbar-color: var(--color-divider) transparent; }
+.rc-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.rc-scroll::-webkit-scrollbar-thumb { background: var(--color-divider); border-radius: 4px; }
+
+}
+
+@keyframes rc-pulse { 0%, 100% { opacity: 1 } 50% { opacity: .35 } }
+@keyframes rc-flash {
+  from { background: color-mix(in srgb, var(--color-accent) 22%, transparent) }
+  to { background: transparent }
+}
+@keyframes rc-spin { to { transform: rotate(360deg) } }
+@keyframes rc-rise { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+
+.rc-flash { animation: rc-flash 1.6s ease-out; }
+.rc-rise { animation: rc-rise .35s ease both; }
+.rc-pulse { animation: rc-pulse 2s infinite; }
+.rc-spin { animation: rc-spin 1s linear infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .row-flash {
-    animation: none;
-  }
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
 }

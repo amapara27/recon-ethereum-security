@@ -18,16 +18,18 @@ export const formatEth = (v) => {
 
 export const formatPct = (p) => `${((p || 0) * 100).toFixed(1)}%`
 
+// Epoch milliseconds from either a second/millisecond epoch or an ISO string. NaN if unparseable.
+export function toMs(timestamp) {
+  if (!timestamp) return NaN
+  if (typeof timestamp === 'number') return timestamp < 1e12 ? timestamp * 1000 : timestamp
+  return new Date(timestamp).getTime()
+}
+
 // Relative time; handles both second and millisecond epochs plus ISO strings.
 export function relativeTime(timestamp) {
   if (!timestamp) return 'just now'
   const now = Date.now()
-  const time =
-    typeof timestamp === 'number'
-      ? timestamp < 1e12
-        ? timestamp * 1000
-        : timestamp
-      : new Date(timestamp).getTime()
+  const time = toMs(timestamp)
   if (Number.isNaN(time) || time > now) return 'just now'
   const s = Math.floor((now - time) / 1000)
   if (s < 5) return 'just now'

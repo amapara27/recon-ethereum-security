@@ -12,8 +12,8 @@
       (function () {
         try {
           var t = localStorage.getItem('recon-theme');
-          if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-          if (t === 'dark') document.documentElement.classList.add('dark');
+          if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+          document.documentElement.dataset.theme = t;
         } catch (e) {}
       })();
     </script>

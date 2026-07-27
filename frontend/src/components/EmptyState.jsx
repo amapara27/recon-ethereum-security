@@ -1,15 +1,10 @@
 // Neutral empty/placeholder state used across pages.
-export default function EmptyState({ icon: Icon, title, description, children }) {
+export default function EmptyState({ icon: Icon, title, description, iconColor, className = 'px-5 py-14' }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center px-6 py-12 text-center">
-      {Icon && (
-        <span className="mb-4 grid size-12 place-items-center rounded-xl bg-elevated text-muted">
-          <Icon size={24} aria-hidden="true" />
-        </span>
-      )}
-      <p className="text-sm font-semibold text-ink">{title}</p>
-      {description && <p className="mt-1 max-w-sm text-sm text-muted">{description}</p>}
-      {children && <div className="mt-4">{children}</div>}
+    <div className={`text-center ${className}`}>
+      {Icon && <Icon size={22} className="mx-auto text-muted" style={iconColor ? { color: iconColor } : undefined} aria-hidden="true" />}
+      <div className="mt-2.5 text-[13.5px]">{title}</div>
+      {description && <div className="mt-1 text-[12.5px] text-muted">{description}</div>}
     </div>
   )
 }

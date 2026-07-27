@@ -1,55 +1,56 @@
-import { useMemo } from 'react'
-import { ShieldAlert, ShieldCheck, ExternalLink } from 'lucide-react'
-import Card from './Card'
-import RiskBadge from './RiskBadge'
-import AddressPill from './AddressPill'
+import { ShieldAlert, ShieldCheck } from 'lucide-react'
 import EmptyState from './EmptyState'
-import { THREAT_THRESHOLD } from '../lib/risk'
-import { shortHash, etherscanTx } from '../lib/format'
+import { shortAddr, formatEth, relativeTime } from '../lib/format'
+import { riskColor, THREAT_THRESHOLD } from '../lib/risk'
 
-export default function ThreatsPanel({ transactions }) {
-  const threats = useMemo(
-    () =>
-      [...transactions]
-        .filter((t) => (t.probability || 0) >= THREAT_THRESHOLD)
-        .sort((a, b) => (b.probability || 0) - (a.probability || 0)),
-    [transactions],
-  )
+const MUTED = (pct) => `color-mix(in srgb, var(--color-text) ${pct}%, transparent)`
 
+export default function ThreatsPanel({ threats, onSelect, compact }) {
   return (
-    <Card
-      title="Active Threats"
-      subtitle={threats.length ? `${threats.length} flagged ≥ ${THREAT_THRESHOLD * 100}%` : 'Real-time'}
-      icon={ShieldAlert}
-      bodyClassName="p-0"
-      className="h-full"
-    >
-      {threats.length === 0 ? (
-        <EmptyState icon={ShieldCheck} title="No active threats" description="No transactions above the alert threshold in the current window." />
-      ) : (
-        <div className="h-full space-y-2 overflow-auto p-3">
-          {threats.map((t) => (
-            <div key={t.tx_hash} className="rounded-xl border border-risk-high/30 bg-risk-high/5 p-3">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-risk-high">High-risk transfer</span>
-                <RiskBadge probability={t.probability} />
+    <div className="card elev-sm overflow-hidden rounded-md p-0">
+      <div className="flex items-center gap-2 border-b border-line px-3.5 py-[11px]">
+        <ShieldAlert size={15} style={{ color: 'var(--risk-high)' }} />
+        <span className="text-sm" style={{ fontFamily: 'var(--font-heading)' }}>Active threats</span>
+        <span className="mono ml-auto text-[11px]" style={{ color: MUTED(45) }}>≥{THREAT_THRESHOLD * 100}%</span>
+      </div>
+
+      <div className="rc-scroll overflow-auto" style={{ maxHeight: compact ? '240px' : 'max(320px, calc(100dvh - 330px))' }}>
+        {threats.slice(0, 40).map((t) => {
+          const color = riskColor(t.probability)
+          return (
+            <div
+              key={t.tx_hash}
+              onClick={() => onSelect(t.tx_hash)}
+              className="rc-row cursor-pointer border-b px-3.5 py-2.5"
+              style={{ boxShadow: `inset 3px 0 0 ${color}`, borderColor: MUTED(6) }}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-[10.5px] uppercase tracking-[0.07em]" style={{ color }}>
+                  {(t.probability || 0) >= 0.8 ? 'High-risk transfer' : 'Elevated risk'}
+                </span>
+                <span className="mono ml-auto text-[11.5px]" style={{ color }}>
+                  {((t.probability || 0) * 100).toFixed(1)}%
+                </span>
               </div>
-              <div className="mt-2 flex items-center justify-between gap-2">
-                <AddressPill address={t.address} />
-                <a
-                  href={etherscanTx(t.tx_hash)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 font-mono text-xs text-accent hover:underline"
-                >
-                  {shortHash(t.tx_hash, 8)}
-                  <ExternalLink size={12} />
-                </a>
+              <div className="mono mt-[5px] truncate text-[11.5px]" style={{ color: MUTED(70) }}>
+                {shortAddr(t.address)} → {shortAddr(t.to_address)}
+              </div>
+              <div className="mono mt-1 text-[11px]" style={{ color: MUTED(40) }}>
+                {relativeTime(t.timestamp)} · {formatEth(t.value)} Ξ
               </div>
             </div>
-          ))}
-        </div>
-      )}
-    </Card>
+          )
+        })}
+
+        {threats.length === 0 && (
+          <EmptyState
+            icon={ShieldCheck}
+            iconColor="var(--risk-safe)"
+            title="Nothing above threshold"
+            className="px-5 py-10"
+          />
+        )}
+      </div>
+    </div>
   )
 }
