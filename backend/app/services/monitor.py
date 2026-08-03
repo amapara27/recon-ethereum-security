@@ -22,6 +22,9 @@ alerts_path.parent.mkdir(parents=True, exist_ok=True)
 load_dotenv(env_path)
 rpc_url = os.environ.get('ALCHEMY_RPC_URL')
 
+POLL_SECONDS = int(os.environ.get('POLL_SECONDS', 12))       # mainnet block time
+MAX_ADDR_PER_BLOCK = int(os.environ.get('MAX_ADDR_PER_BLOCK', 5))  # each addr = 2 Etherscan calls
+
 MODEL_PATH = models_dir / "fraud_model.joblib"
 MASTER_COLUMN_PATH = lists_dir / "master_column_list.txt"
 MASTER_SENT_PATH = lists_dir / "master_sent.txt"
@@ -89,14 +92,53 @@ def clean_database():
     conn.commit()
     conn.close()
 
+def pick_addresses(block):
+    """First unseen sender per address in the block, capped at MAX_ADDR_PER_BLOCK."""
+    fresh = {}
+
+    for tx in block.transactions:
+        if tx['from'] not in processed_addr and tx['from'] not in fresh:
+            fresh[tx['from']] = tx
+
+            if len(fresh) >= MAX_ADDR_PER_BLOCK:
+                break
+
+    return fresh
+
+def process_block(block):
+    fresh = pick_addresses(block)
+    print(f"📦 Block {block['number']}: {len(block.transactions)} txs, scoring {len(fresh)}")
+
+    for from_addr, tx in fresh.items():
+        try:
+            final_vector = get_feature_vector(from_addr, MASTER_SENT_PATH, MASTER_REC_PATH, MASTER_COLUMN_LIST)
+
+            if final_vector.empty:
+                continue
+
+            fraud_probability = model.predict_proba(final_vector)[0][1]
+
+            value_eth = w3.from_wei(tx['value'], 'ether')
+            log_transaction(from_addr, tx['to'], str(value_eth), tx['hash'].hex(), fraud_probability)
+
+            if fraud_probability >= 0.3:
+                print(f"🚨 FRAUD ALERT! {from_addr} (Probability: {fraud_probability})")
+
+            processed_addr.add(from_addr)
+
+            if len(processed_addr) > 10000:
+                processed_addr.clear()
+
+        except Exception as e:
+            print(f"Error scoring {from_addr}: {e}")
+
 def main_loop():
     if not w3.is_connected():
         print("Connection failed. Check your RPC_URL.")
         return
-    
-    block_filter = w3.eth.filter('latest')
 
     last_clean = time.time()
+    last_block = None
 
     while True:
         if time.time() - last_clean > 3600:
@@ -104,47 +146,18 @@ def main_loop():
             last_clean = time.time()
 
         try:
-            new_blocks = block_filter.get_new_entries()
-         
-            for block_hash in new_blocks:
-                try: 
-                    block = w3.eth.get_block(block_hash, full_transactions=True)
-                    print(f"📦 Processing Block: {block['number']} ({len(block.transactions)} txs)")
+            # ponytail: poll 'latest' instead of a block filter — filters expire on Alchemy, and
+            # get_new_entries() returns the whole backlog. Skipped blocks are dropped on purpose.
+            block = w3.eth.get_block('latest', full_transactions=True)
 
-                    for tx in block.transactions:
-                        from_addr = tx['from']
-
-                        if from_addr not in processed_addr:
-                            print(f"Analyzing new address: {from_addr}")
-
-                            final_vector = get_feature_vector(from_addr, MASTER_SENT_PATH, MASTER_REC_PATH, MASTER_COLUMN_LIST)
-
-                            if final_vector.empty:
-                                continue
-
-                            fraud_probability = model.predict_proba(final_vector)[0][1]
-
-                            value_eth = w3.from_wei(tx['value'], 'ether')
-                            log_transaction(from_addr, tx['to'], str(value_eth), tx['hash'].hex(), fraud_probability)
-
-                            if fraud_probability >= 0.3:
-                                print(f"🚨 FRAUD ALERT! (Probability: {fraud_probability})")
-
-                            processed_addr.add(from_addr)
-
-                            if len(processed_addr) > 10000:
-                                processed_addr.clear()
-
-                except Exception as e:
-                    print(f"Error processing block: {e}")
-
-            time.sleep(5)
+            if block['number'] != last_block:
+                last_block = block['number']
+                process_block(block)
 
         except Exception as e:
             print(f"Loop error: {e}")
-            time.sleep(5)
 
-        time.sleep(1)
+        time.sleep(POLL_SECONDS)
 
 def main():
     setup_databse()
