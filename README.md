@@ -321,46 +321,6 @@ directory. The build commands inside it `cd` into `frontend` themselves.
 
 ---
 
-## Roadmap
-
-### Shipped
-- [x] Live block monitoring with ML fraud scoring (814 features, ROC-AUC 0.99, recall 0.96)
-- [x] Claude-powered contract auditor with structured JSON findings
-- [x] SQLite caching layer for audits
-- [x] React dashboard with live feed, threat panel, light/dark
-- [x] Two-container Docker setup with independently pausable monitor
-- [x] Input validation, source-size cap, and global rate limiting on paid endpoints
-- [x] Vercel + EC2 deployment with rewrite proxy
-
-### Next
-- [ ] **Wallet watchlist** — the UI is stubbed; needs a backend to track addresses and alert on behavioural drift
-- [ ] **Postgres migration** — SQLite is fine for one writer, but blocks horizontal scaling
-- [ ] **Alert delivery** — webhooks, Telegram, Discord
-- [ ] **Multi-chain** — Base, Arbitrum, Polygon share the EVM feature pipeline
-- [ ] **Model retraining pipeline** — drift detection and scheduled retraining as fraud patterns evolve
-
-### Where this gets interesting: agent-native security
-
-Autonomous agents are starting to hold wallets and transact without a human in
-the loop. That removes the last line of defence — a person looking at the screen
-before signing. An agent has no instinct for "this contract looks off." It needs
-that judgement as an API.
-
-- [ ] **MCP server** — expose Recon as [Model Context Protocol](https://modelcontextprotocol.io/) tools (`check_address_risk`, `audit_contract`) so any agent can consult it mid-reasoning, before it signs. The endpoints already exist; this is mostly a protocol wrapper, and it's the highest-leverage item on this list.
-- [ ] **Pre-flight transaction firewall** — an agent about to swap calls Recon first and gets `allow` / `warn` / `deny` with reasons. A guardrail an agent framework can enforce rather than a dashboard a human reads.
-- [ ] **x402 machine-payable audits** — serve the auditor behind [HTTP 402](https://www.x402.org/), so an agent pays per audit in USDC with no API key, no signup, no human billing relationship. Fitting: the thing protecting agents from bad contracts is itself paid for by agents, on-chain. Also fixes the rate limiting honestly — right now abuse is capped at 3/day for everyone; metered payment prices it instead.
-- [ ] **Agent counterparty reputation** — as agents transact with each other, score the *agents*, not just wallets. Behavioural fingerprinting already generalises here; agent wallets have unusually legible patterns.
-
-### Where this gets interesting: better audits
-
-- [ ] **Simulate before reporting** — fork mainnet with Anvil and actually attempt the exploit the model hypothesised. Only report findings that are *demonstrably* exploitable. This is the single biggest lever on false positives, and turns "possible reentrancy" into "here is the transaction that drains it."
-- [ ] **Exploit-corpus retrieval** — RAG over historical hacks so findings cite precedent: "this matches the pattern used in the $X exploit." Grounds the LLM in real incidents rather than textbook categories.
-- [ ] **Adversarial audit panel** — several agents with different specialisations (reentrancy, tokenomics, access control) review independently, then reconcile. Surface disagreement instead of hiding it; a split verdict is useful signal.
-- [ ] **On-chain attestations** — publish audit results via [EAS](https://attest.sh/) so they're verifiable and composable by other contracts, instead of trapped in this database.
-- [ ] **Natural-language queries** over the alert corpus — "show me addresses that started moving funds after six months dormant."
-
----
-
 ## Tech stack
 
 | Layer | |
