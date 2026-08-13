@@ -18,7 +18,7 @@
 
 ---
 
-## What it is
+## About
 
 Recon watches Ethereum mainnet as blocks are produced, scores every newly-seen
 address with a trained fraud model, and separately audits verified Solidity
