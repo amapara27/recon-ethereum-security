@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛡️ Recon
+# Recon
 
 ### Real-time Ethereum threat intelligence — ML fraud scoring + AI smart contract auditing
 
