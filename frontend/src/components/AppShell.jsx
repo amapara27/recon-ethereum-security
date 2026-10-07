@@ -1,40 +1,35 @@
-import { Radar, FileSearch, Eye } from 'lucide-react'
-import Sidebar, { MobileNav } from './Sidebar'
 import TopBar from './TopBar'
 
 const NAV = [
-  { id: 'scanner', label: 'Live scanner', short: 'Scanner', icon: Radar, sub: '· scoring every transfer at head' },
-  { id: 'auditor', label: 'Contract auditor', short: 'Auditor', icon: FileSearch, sub: '· verified Solidity review' },
-  { id: 'watchlist', label: 'Watchlist', short: 'Watchlist', icon: Eye, sub: '· score drift on pinned addresses' },
+  { id: 'scanner', label: 'Scanner', title: 'Live scanner' },
+  { id: 'auditor', label: 'Auditor', title: 'Contract auditor' },
+  { id: 'watchlist', label: 'Watchlist', title: 'Watchlist' },
 ]
 
 export default function AppShell({ current, onNavigate, onExit, status, updatedAt, counts, live, onToggleLive, theme, onToggleTheme, children }) {
   const page = NAV.find((n) => n.id === current) ?? NAV[0]
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-app text-ink">
-      <Sidebar
+    <div className="flex h-dvh flex-col overflow-hidden bg-app text-ink">
+      <TopBar
         nav={NAV}
         current={current}
+        counts={counts}
         onNavigate={onNavigate}
         onExit={onExit}
         status={status}
-        count={counts}
         updatedAt={updatedAt}
+        live={live}
+        onToggleLive={onToggleLive}
+        theme={theme}
+        onToggleTheme={onToggleTheme}
       />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar
-          title={page.label}
-          subtitle={page.sub}
-          status={status}
-          live={live}
-          onToggleLive={onToggleLive}
-          theme={theme}
-          onToggleTheme={onToggleTheme}
-        />
-        <main className="rc-scroll flex-1 overflow-auto px-4 pb-24 pt-4 sm:px-5 md:pb-7">{children}</main>
-      </div>
-      <MobileNav nav={NAV} current={current} onNavigate={onNavigate} />
+      <main className="scroll flex-1 overflow-auto">
+        <div className="mx-auto max-w-[1440px] px-4 pb-10 pt-5 sm:px-6">
+          <h1 className="mb-4 text-[22px]">{page.title}</h1>
+          {children}
+        </div>
+      </main>
     </div>
   )
 }

@@ -8,9 +8,9 @@ function initialTheme() {
     return document.documentElement.dataset.theme
   }
   try {
-    return localStorage.getItem(KEY) || 'dark'
+    return localStorage.getItem(KEY) || 'light'
   } catch {
-    return 'dark'
+    return 'light'
   }
 }
 

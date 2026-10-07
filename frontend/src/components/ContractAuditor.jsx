@@ -1,37 +1,31 @@
 import { useEffect, useMemo, useState } from 'react'
-import {
-  FileSearch, Loader2, TriangleAlert, RotateCcw, ArrowUpRight,
-  RefreshCw, Fish, Crown, Timer, Link2, Percent, Layers, Code,
-} from 'lucide-react'
-import SafetyScoreRing from './SafetyScoreRing'
+import { Loader2, TriangleAlert, ArrowUpRight } from 'lucide-react'
 import FindingRow from './FindingRow'
 import { analyzeContract } from '../lib/api'
-import { getScoreBand, severityColor } from '../lib/risk'
+import { severityColor } from '../lib/risk'
 import { etherscanAddr } from '../lib/format'
 import { ADDRESS_RE } from '../hooks/useWatchlist'
 
-const MUTED = (pct) => `color-mix(in srgb, var(--color-text) ${pct}%, transparent)`
-const LABEL = 'text-[11px] uppercase tracking-[0.07em]'
 const RECENT_KEY = 'recon-recent-audits'
 
 const EXAMPLES = [
-  { label: '0xdAC1…31ec7 · USDT', address: '0xdAC17F958D2ee523a2206206994597C13D831ec7' },
-  { label: '0x7a25…488D · UniswapV2Router', address: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D' },
-  { label: '0x1526…4c898 · CakeOFT', address: '0x152649eA73beAb28c5b49B26eb48f7EAD6d4c898' },
+  { label: 'USDT', address: '0xdAC17F958D2ee523a2206206994597C13D831ec7' },
+  { label: 'Uniswap V2 Router', address: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D' },
+  { label: 'CakeOFT', address: '0x152649eA73beAb28c5b49B26eb48f7EAD6d4c898' },
 ]
 
+// Exactly what the review prompt asks for (backend/app/services/contract_analyzer.py).
 const CHECKS = [
-  [RefreshCw, 'Reentrancy', 'External calls before state writes, cross-function and read-only paths.'],
-  [Fish, 'Honeypots', 'Asymmetric transfer logic, hidden blocklists, sell-side reverts.'],
-  [Crown, 'Owner privilege', 'Pause, mint, cap, fee and whitelist powers held by a single key.'],
-  [Timer, 'Timelocks', 'Whether critical setters can execute without notice.'],
-  [Link2, 'Cross-chain trust', 'Bridge remotes, message verification, replay surface.'],
-  [Percent, 'Fee traps', 'Fee ceilings, denominators and post-deploy fee mutability.'],
-  [Layers, 'Proxy safety', 'Upgrade authority, storage-collision risk, uninitialised slots.'],
-  [Code, 'Compiler risk', 'Known pragma bugs, unchecked math, deprecated opcodes.'],
+  ['Reentrancy', 'External calls that can re-enter before state is updated.'],
+  ['Integer overflow and underflow', 'Unchecked arithmetic where SafeMath or checked math is missing.'],
+  ['Unchecked return values', 'Calls and transfers whose failure is silently ignored.'],
+  ['Centralisation', 'Owner powers such as unlimited minting.'],
+  ['Honeypots', 'Restrictions that stop holders from selling.'],
 ]
 
-const SEVERITIES = ['Critical', 'High', 'Medium', 'Low']
+// The finding severity enum the backend returns.
+const SEVERITIES = ['High', 'Medium', 'Low']
+const SCORE_TICKS = [0, 70, 100] // ≥70 is the shaded reference interval
 
 function loadRecent() {
   try {
@@ -51,7 +45,7 @@ export default function ContractAuditor({ initialAddress = '' }) {
   const [allOpen, setAllOpen] = useState(false)
   const [recent, setRecent] = useState(loadRecent)
 
-  // Arriving from "Audit counterparty contract" prefills the field; the audit itself
+  // Arriving from "Audit the recipient contract" prefills the field; the audit itself
   // stays a deliberate click — the backend allows only 3 uncached analyses per day.
   useEffect(() => {
     if (initialAddress) setAddress(initialAddress)
@@ -105,115 +99,124 @@ export default function ContractAuditor({ initialAddress = '' }) {
     }))
   }, [report])
 
-  const band = report ? getScoreBand(report.safe_score) : null
+  const verdictColor = report ? severityColor(report.risk_level) : null
   const findings = report?.vulnerabilities || []
+  const valid = ADDRESS_RE.test(address.trim())
+  const score = Math.max(0, Math.min(100, report?.safe_score || 0))
 
   return (
-    <div className="mx-auto flex max-w-[1080px] flex-col gap-3.5">
-      <form className="card elev-sm rounded-md p-4" onSubmit={run}>
-        <div className="flex flex-wrap gap-[9px]">
+    <div className="flex flex-col gap-4">
+      <form className="sheet px-4 py-4 sm:px-5" onSubmit={run}>
+        <label htmlFor="audit-address" className="th">Verified contract address</label>
+        <div className="mt-1.5 flex flex-col gap-2 sm:flex-row">
           <input
-            className="input mono min-h-[38px] flex-1 text-[13px] sm:min-w-[280px]"
-            style={{ background: 'var(--color-bg)' }}
+            id="audit-address"
+            className="input mono min-h-[40px] flex-1 text-[14px]"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder="0x… verified contract address"
-            aria-label="Contract address"
+            placeholder="0x…"
+            spellCheck={false}
+            autoComplete="off"
           />
-          <button type="submit" className="btn btn-primary min-h-[38px] px-[18px]" disabled={loading || !ADDRESS_RE.test(address.trim())}>
-            {loading ? <Loader2 size={15} className="rc-spin" /> : <FileSearch size={15} />}
-            {loading ? 'Analysing…' : 'Audit'}
+          <button type="submit" className="btn btn-primary min-h-[40px] px-5" disabled={loading || !valid}>
+            {loading && <Loader2 size={15} className="spin" />}
+            {loading ? 'Auditing…' : 'Run audit'}
           </button>
         </div>
-        <div className="mt-[11px] flex flex-wrap items-center gap-2">
-          <span className={LABEL} style={{ color: MUTED(45) }}>Try</span>
-          {EXAMPLES.map((e) => (
-            <button
-              key={e.address}
-              type="button"
-              onClick={() => setAddress(e.address)}
-              title="Fill the field — press Audit to run it"
-              className="rc-chip mono cursor-pointer rounded-full border bg-transparent px-[9px] py-1 text-[11.5px]"
-              style={{ borderColor: 'var(--color-divider)', color: MUTED(70) }}
-            >
-              {e.label}
-            </button>
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-1 gap-y-1 text-[13px]">
+          <span className="mr-1 text-ink-3">Examples:</span>
+          {EXAMPLES.map((e, i) => (
+            <span key={e.address} className="inline-flex items-center">
+              <button
+                type="button"
+                onClick={() => setAddress(e.address)}
+                title={`Fill in ${e.address}`}
+                className="cursor-pointer bg-transparent p-0 font-semibold text-act underline decoration-1 underline-offset-[3px] hover:text-ink"
+              >
+                {e.label}
+              </button>
+              {i < EXAMPLES.length - 1 && <span className="ml-1 text-ink-3">·</span>}
+            </span>
           ))}
         </div>
+        <p className="mt-2.5 max-w-[78ch] text-[12.5px] text-ink-3">
+          New audits are limited to three a day across all users. Contracts audited before return instantly.
+        </p>
         {error && (
-          <div
-            className="mt-3 flex items-center gap-2 rounded-md border px-3 py-2 text-[13px]"
-            style={{ borderColor: 'var(--risk-high)', color: 'var(--risk-high)' }}
-            role="alert"
-          >
-            <TriangleAlert size={15} className="shrink-0" />
+          <div className="mt-3 flex items-start gap-2 border-t border-line pt-3 text-[13.5px] font-semibold text-risk-high" role="alert">
+            <TriangleAlert size={16} className="mt-0.5 shrink-0" />
             {error}
           </div>
         )}
       </form>
 
       {loading && (
-        <div className="card elev-sm flex-row items-center gap-2.5 rounded-md p-4 text-[13px]">
-          <Loader2 size={15} className="rc-spin text-accent" />
-          Fetching verified source from Etherscan and running the security review — this takes a few seconds.
+        <div className="sheet flex items-center gap-3 px-5 py-4 text-[13.5px]" role="status">
+          <Loader2 size={16} className="spin text-act" />
+          Fetching verified source from Etherscan and running the review. This usually takes several seconds.
         </div>
       )}
 
       {report && !loading && (
-        <div className="grid items-start gap-3.5 lg:grid-cols-[minmax(0,1fr)_292px]">
-          <div className="flex min-w-0 flex-col gap-3.5">
-            <div className="card elev-sm rounded-md p-[18px]">
-              <div className="flex flex-wrap items-start gap-5">
-                <SafetyScoreRing score={report.safe_score} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-[9px]">
-                    <h4>{report.contract_name || 'Contract'}</h4>
-                    {report.risk_level && (
-                      <span className="tag border" style={{ borderColor: band.color, color: band.color }}>
-                        {report.risk_level} risk
-                      </span>
-                    )}
-                  </div>
-                  <div className="mono mt-1.5 break-all text-[11.5px]" style={{ color: MUTED(50) }}>{report.address}</div>
-                  {report.summary && (
-                    <p className="mb-0 mt-2.5 text-[13.5px] leading-[1.6] text-pretty" style={{ color: MUTED(75) }}>
-                      {report.summary}
-                    </p>
-                  )}
-                </div>
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <article className="sheet min-w-0">
+            <header className="px-5 pb-4 pt-5">
+              <h2 className="text-[24px]">{report.contract_name || 'Contract'}</h2>
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span className="mono break-all text-[13px] text-ink-2">{report.address}</span>
+                <a href={etherscanAddr(report.address)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12.5px] font-semibold no-underline">
+                  Source on Etherscan<ArrowUpRight size={12} />
+                </a>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-[9px] sm:grid-cols-4">
-                {counts.map((c) => (
-                  <div
-                    key={c.k}
-                    className="rounded-sm px-[11px] py-[9px]"
-                    style={{ background: 'var(--surface-2)', boxShadow: `inset 3px 0 0 ${c.color}` }}
-                  >
-                    <div className="mono text-[17px]" style={{ color: c.color }}>{c.n}</div>
-                    <div className="mt-0.5 text-[10.5px] uppercase tracking-[0.06em]" style={{ color: MUTED(50) }}>{c.k}</div>
-                  </div>
+            </header>
+
+            <div className="border-t border-line-strong px-5 pb-1 pt-4">
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span className="th">Safety score</span>
+                <span className="mono text-[28px] font-semibold leading-none" style={{ color: verdictColor }}>{report.safe_score}</span>
+                <span className="mono text-[13px] text-ink-3">/ 100</span>
+                {report.risk_level && (
+                  <span className="text-[14px] font-bold" style={{ color: verdictColor }}>
+                    {report.risk_level} risk
+                  </span>
+                )}
+              </div>
+              <div className="rb mt-3" style={{ height: 22 }} role="img" aria-label={`Safety score ${report.safe_score} of 100; 70 and above is the shaded range`}>
+                <span className="rb-ref" style={{ left: '70%', width: '30%' }} />
+                <span className="rb-tick" style={{ left: '70%' }} />
+                <span className="rb-mark" style={{ left: `${score}%`, background: verdictColor }} />
+              </div>
+              <div className="mono relative mt-1.5 h-4 text-[11px] text-ink-3" aria-hidden="true">
+                {SCORE_TICKS.map((t) => (
+                  <span key={t} className={`absolute ${t === 0 ? '' : t === 100 ? '-translate-x-full' : '-translate-x-1/2'}`} style={{ left: `${t}%` }}>{t}</span>
                 ))}
               </div>
             </div>
 
-            <div className="card elev-sm overflow-hidden rounded-md p-0">
-              <div className="flex items-center gap-2 border-b border-line px-[15px] py-3">
-                <TriangleAlert size={15} style={{ color: 'var(--risk-med)' }} />
-                <span className="text-sm" style={{ fontFamily: 'var(--font-heading)' }}>Findings</span>
-                <span className="mono text-[11.5px]" style={{ color: MUTED(45) }}>{findings.length}</span>
+            {report.summary && (
+              <section className="px-5 pt-4">
+                <h3 className="text-[15px]">Summary</h3>
+                <p className="mt-1.5 max-w-[72ch] text-[14px] leading-[1.6] text-ink-2 text-pretty">{report.summary}</p>
+              </section>
+            )}
+
+            <section className="mt-5">
+              <div className="flex items-center gap-2 border-b border-line-strong px-5 pb-2">
+                <h3 className="text-[15px]">Findings</h3>
+                <span className="text-[13px] text-ink-3">
+                  <span className="mono">{findings.length}</span>
+                  {counts.filter((c) => c.n).map((c) => (
+                    <span key={c.k}> · <span className="mono font-semibold" style={{ color: c.color }}>{c.n}</span> {c.k.toLowerCase()}</span>
+                  ))}
+                </span>
                 {findings.length > 0 && (
-                  <button
-                    className="btn btn-ghost ml-auto px-1.5 py-0.5 text-[11.5px]"
-                    onClick={() => { setAllOpen((v) => !v); setOpen({}) }}
-                  >
+                  <button className="btn btn-ghost ml-auto text-[12.5px]" onClick={() => { setAllOpen((v) => !v); setOpen({}) }}>
                     {allOpen ? 'Collapse all' : 'Expand all'}
                   </button>
                 )}
               </div>
               {findings.length === 0 ? (
-                <div className="px-[15px] py-8 text-center text-[13px]" style={{ color: MUTED(60) }}>
-                  No vulnerabilities were flagged by the analysis.
-                </div>
+                <p className="px-5 py-8 text-center text-[13.5px] text-ink-3">The review flagged no vulnerabilities.</p>
               ) : (
                 findings.map((v, i) => (
                   <FindingRow
@@ -224,67 +227,31 @@ export default function ContractAuditor({ initialAddress = '' }) {
                   />
                 ))
               )}
-            </div>
-          </div>
+            </section>
+          </article>
 
-          <div className="flex flex-col gap-3.5">
-            <div className="card elev-sm rounded-md p-3.5">
-              <div className={LABEL} style={{ color: MUTED(55) }}>This report</div>
-              <div className="mt-[11px] flex flex-col gap-[9px] text-xs">
-                <div className="flex items-center gap-2">
-                  <span style={{ color: MUTED(55) }}>Safety score</span>
-                  <span className="mono ml-auto" style={{ color: band.color }}>{report.safe_score} / 100 · {band.label}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span style={{ color: MUTED(55) }}>Findings</span>
-                  <span className="mono ml-auto">{findings.length}</span>
-                </div>
-                {counts.filter((c) => c.n > 0).map((c) => (
-                  <div key={c.k} className="flex items-center gap-2">
-                    <span style={{ color: MUTED(55) }}>{c.k}</span>
-                    <span className="mono ml-auto" style={{ color: c.color }}>{c.n}</span>
-                  </div>
-                ))}
-                <a
-                  href={etherscanAddr(report.address)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-0.5 inline-flex items-center gap-1 no-underline"
-                >
-                  View source on Etherscan<ArrowUpRight size={11} />
-                </a>
-              </div>
-            </div>
-
+          <div className="flex flex-col gap-4">
+            <button className="btn btn-secondary w-full" onClick={reset}>Audit another contract</button>
             <RecentAudits recent={recent} onPick={setAddress} />
-
-            <button className="btn btn-secondary btn-block text-[12.5px]" onClick={reset}>
-              <RotateCcw size={14} />Audit another contract
-            </button>
           </div>
         </div>
       )}
 
       {!report && !loading && (
-        <div className="grid items-start gap-3.5 lg:grid-cols-[minmax(0,1fr)_292px]">
-          <div className="card elev-sm rounded-md p-[18px]">
-            <div className="text-[15px]" style={{ fontFamily: 'var(--font-heading)' }}>What the review looks for</div>
-            <p className="mb-0 mt-1.5 text-[13px]" style={{ color: MUTED(62) }}>
-              Verified source is pulled from Etherscan and put through an LLM security review that returns a
-              safety score, a risk level and findings by severity.
-            </p>
-            <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
-              {CHECKS.map(([Icon, title, body]) => (
-                <div key={title} className="flex gap-2.5 rounded-sm px-3 py-[11px]" style={{ background: 'var(--surface-2)' }}>
-                  <Icon size={16} className="flex-none text-accent" />
-                  <div className="min-w-0">
-                    <div className="text-[13px]" style={{ fontFamily: 'var(--font-heading)' }}>{title}</div>
-                    <div className="mt-0.5 text-[11.5px] leading-[1.5]" style={{ color: MUTED(55) }}>{body}</div>
-                  </div>
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <section className="sheet">
+            <div className="sheet-head">
+              <h2 className="sheet-title">What the review checks</h2>
+            </div>
+            <dl className="m-0">
+              {CHECKS.map(([title, body]) => (
+                <div key={title} className="grid gap-x-4 border-t border-line px-4 py-2.5 sm:grid-cols-[220px_minmax(0,1fr)]">
+                  <dt className="text-[13.5px] font-bold">{title}</dt>
+                  <dd className="m-0 text-[13.5px] text-ink-2">{body}</dd>
                 </div>
               ))}
-            </div>
-          </div>
+            </dl>
+          </section>
           <RecentAudits recent={recent} onPick={setAddress} />
         </div>
       )}
@@ -295,31 +262,27 @@ export default function ContractAuditor({ initialAddress = '' }) {
 // Audits run from this browser. Clicking one refills the field rather than re-running it.
 function RecentAudits({ recent, onPick }) {
   return (
-    <div className="card elev-sm overflow-hidden rounded-md p-0">
-      <div className={`${LABEL} border-b border-line px-3.5 py-3`} style={{ color: MUTED(55) }}>Recent audits</div>
+    <section className="sheet" aria-label="Recent audits">
+      <div className="sheet-head">
+        <h2 className="sheet-title">Recent audits</h2>
+        <span className="ml-auto text-[12px] text-ink-3">this browser</span>
+      </div>
       {recent.length === 0 ? (
-        <div className="px-3.5 py-6 text-center text-[12.5px]" style={{ color: MUTED(50) }}>
-          Reports you run here will be listed for quick recall.
-        </div>
+        <p className="px-4 py-6 text-center text-[13px] text-ink-3">None yet.</p>
       ) : (
-        recent.map((a) => {
-          const color = getScoreBand(a.score).color
-          return (
+        recent.map((a) => (
             <button
               key={a.address}
               onClick={() => onPick(a.address)}
-              className="rc-row block w-full cursor-pointer border-b border-0 bg-transparent px-3.5 py-[11px] text-left"
-              style={{ boxShadow: `inset 3px 0 0 ${color}`, borderColor: MUTED(6), color: 'inherit', font: 'inherit' }}
+              title="Fill the field with this address"
+              className="row-btn grid-cols-[minmax(0,1fr)_auto] gap-x-3 px-4 py-2.5"
             >
-              <div className="flex items-center gap-2">
-                <span className="truncate text-[13px]">{a.name}</span>
-                <span className="mono ml-auto text-xs" style={{ color }}>{a.score}</span>
-              </div>
-              <div className="mono mt-[3px] truncate text-[11px]" style={{ color: MUTED(45) }}>{a.address}</div>
+              <span className="truncate text-[13.5px] font-semibold">{a.name}</span>
+              <span className="mono text-[13.5px] font-semibold">{a.score}</span>
+              <span className="mono col-span-2 truncate text-[12px] text-ink-3">{a.address}</span>
             </button>
-          )
-        })
+        ))
       )}
-    </div>
+    </section>
   )
 }

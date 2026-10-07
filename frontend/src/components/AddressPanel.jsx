@@ -1,18 +1,22 @@
-import { useMemo, useState } from 'react'
-import { ArrowLeft, ArrowUpRight, Eye, FileSearch, Copy, Check } from 'lucide-react'
-import Sparkline from './Sparkline'
+import { useEffect, useMemo, useState } from 'react'
+import { X, ArrowUpRight, Eye, FileSearch, Copy, Check } from 'lucide-react'
+import RangeBar from './RangeBar'
 import { shortAddr, formatEth, formatPct, relativeTime, etherscanAddr } from '../lib/format'
 import { riskColor, riskBand } from '../lib/risk'
 import { addressTouches, counterparties } from '../lib/series'
 
-const MUTED = (pct) => `color-mix(in srgb, var(--color-text) ${pct}%, transparent)`
-const LABEL = 'text-[11px] uppercase tracking-[0.07em]'
-
 // Everything here is read off the 24h alert window — no separate per-address endpoint exists,
 // so the panel shows what the feed actually knows about the sender and says so.
+// Below xl it covers the screen as its own sheet; from xl it sits in the right column.
 export default function AddressPanel({ tx, alerts, onClear, onAudit, watched, onWatch }) {
   const address = tx.address
   const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    const onKey = (e) => e.key === 'Escape' && onClear()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClear])
 
   const copy = async () => {
     try {
@@ -24,18 +28,19 @@ export default function AddressPanel({ tx, alerts, onClear, onAudit, watched, on
     }
   }
 
-  const { history, stats, peers } = useMemo(() => {
+  const { history, stats, peers, recent } = useMemo(() => {
     const touches = addressTouches(alerts, address)
     const probs = touches.map((t) => t.probability || 0)
     const values = touches.map((t) => parseFloat(t.value) || 0)
     return {
       history: probs,
+      recent: touches.slice(-6).reverse(),
       peers: counterparties(alerts, address, 4),
       stats: [
-        ['First seen', touches.length ? relativeTime(touches[0].timestamp) : '—'],
+        ['First seen', touches.length ? relativeTime(touches[0].timestamp) : '—', false],
         ['Touches, 24h', touches.length.toLocaleString()],
         ['Mean value', `${(values.reduce((s, v) => s + v, 0) / (values.length || 1)).toFixed(4)} Ξ`],
-        ['Peak risk', probs.length ? formatPct(Math.max(...probs)) : '—'],
+        ['Peak score', probs.length ? formatPct(Math.max(...probs)) : '—'],
       ],
     }
   }, [alerts, address])
@@ -43,76 +48,96 @@ export default function AddressPanel({ tx, alerts, onClear, onAudit, watched, on
   const color = riskColor(tx.probability)
 
   return (
-    <div className="card elev-md rc-rise overflow-hidden rounded-md p-0">
-      <div className="flex items-center gap-2 border-b border-line px-3.5 py-[11px]">
-        <button className="btn btn-ghost px-1 py-0.5" onClick={onClear} aria-label="Close investigation">
-          <ArrowLeft size={14} />
-        </button>
-        <span className={LABEL} style={{ color: MUTED(55) }}>Address investigation</span>
-        <button className="btn btn-ghost ml-auto px-1.5 py-0.5 text-[11.5px]" onClick={() => onWatch(address)}>
-          <Eye size={13} fill={watched ? 'currentColor' : 'none'} />{watched ? 'Tracked' : 'Track'}
-        </button>
-      </div>
-
-      <div className="p-3.5">
-        <div className="flex items-start gap-2">
-          <div className="mono min-w-0 break-all text-[13px]">{address}</div>
-          <button onClick={copy} aria-label="Copy address" className="btn btn-ghost mt-px shrink-0 px-1 py-0.5">
-            {copied ? <Check size={13} style={{ color: 'var(--risk-safe)' }} /> : <Copy size={13} />}
+    <section
+      className="sheet fixed inset-0 z-50 overflow-auto border-0 xl:static xl:z-auto xl:overflow-visible xl:border"
+      aria-label="Address result"
+    >
+      <div className="sheet-head sticky top-0 bg-sheet xl:static">
+        <h2 className="sheet-title">Sender</h2>
+        <a href={etherscanAddr(address)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12.5px] font-semibold no-underline">
+          Etherscan<ArrowUpRight size={12} />
+        </a>
+        <div className="ml-auto flex items-center gap-1">
+          <button className="btn btn-ghost text-[12.5px]" onClick={() => onWatch(address)} aria-pressed={watched}>
+            <Eye size={14} fill={watched ? 'currentColor' : 'none'} />{watched ? 'Tracked' : 'Track'}
+          </button>
+          <button className="btn btn-ghost" onClick={onClear} aria-label="Close result">
+            <X size={16} />
           </button>
         </div>
-        <div className="mt-2 flex items-center gap-2">
-          <span className="mono text-[22px]" style={{ color }}>{formatPct(tx.probability)}</span>
-          <span className="tag border" style={{ borderColor: color, color }}>{riskBand(tx.probability)}</span>
-          <a
-            href={etherscanAddr(address)}
-            target="_blank"
-            rel="noreferrer"
-            className="ml-auto inline-flex items-center gap-1 text-[11.5px] no-underline"
-          >
-            Etherscan<ArrowUpRight size={11} />
-          </a>
+      </div>
+
+      <div className="px-4 pb-5 pt-3.5">
+        <div className="flex items-start gap-2">
+          <div className="mono min-w-0 break-all text-[13.5px]">{address}</div>
+          <button onClick={copy} aria-label="Copy address" className="btn btn-ghost -mt-1 shrink-0">
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+          </button>
         </div>
 
-        <div className="mt-3">
-          <Sparkline values={history} w={300} h={44} color={color} area full strokeWidth={1.6} opacity={1} />
+        <div className="mt-4 flex items-baseline gap-3">
+          <span className="mono text-[30px] font-semibold leading-none" style={{ color }}>{formatPct(tx.probability)}</span>
+          <span className="text-[13.5px] font-bold" style={{ color }}>{riskBand(tx.probability)}</span>
+          <span className="ml-auto text-[12.5px] text-ink-3">this transfer, {relativeTime(tx.timestamp)}</span>
         </div>
-        <div className="text-[11px]" style={{ color: MUTED(45) }}>
+        <RangeBar value={tx.probability} history={history} height={22} axis className="mt-3" />
+        <p className="mt-1 text-[12.5px] text-ink-3">
           {history.length > 1
-            ? `Score history · ${history.length} touches in the 24h window`
-            : 'Only one scored touch in the window — no history to plot yet'}
-        </div>
+            ? `Hollow dots: the ${history.length - 1} other scores for this address in the window.`
+            : 'Only one scored touch in the window, so there is no history to compare.'}
+        </p>
 
-        <div className="mt-3.5 grid grid-cols-2 gap-[9px]">
-          {stats.map(([k, v]) => (
-            <div key={k} className="rounded-sm px-2.5 py-[9px]" style={{ background: 'var(--surface-2)' }}>
-              <div className="text-[10.5px] uppercase tracking-[0.06em]" style={{ color: MUTED(50) }}>{k}</div>
-              <div className="mono mt-[3px] text-[13px]">{v}</div>
+        <dl className="m-0 mt-4 grid grid-cols-2 border-t border-line">
+          {stats.map(([k, v, mono = true]) => (
+            <div key={k} className="border-b border-line py-2 odd:pr-3 even:border-l even:pl-3">
+              <dt className="th">{k}</dt>
+              <dd className={`m-0 mt-0.5 text-[14px] ${mono ? 'mono' : ''}`}>{v}</dd>
             </div>
           ))}
-        </div>
+        </dl>
 
-        <div className={`${LABEL} mb-2.5 mt-4`} style={{ color: MUTED(55) }}>Recent counterparties</div>
+        {recent.length > 1 && (
+          <>
+            <h3 className="th mt-5">Previous results</h3>
+            <table className="mt-1.5 w-full border-collapse text-[12.5px]">
+              <tbody>
+                {recent.map((r) => (
+                  <tr key={r.tx_hash} className="border-b border-line">
+                    <td className="py-1.5 text-ink-3">{relativeTime(r.timestamp)}</td>
+                    <td className="mono py-1.5 text-right text-ink-2">{formatEth(r.value)} Ξ</td>
+                    <td className="mono py-1.5 text-right font-semibold" style={{ color: riskColor(r.probability) }}>{formatPct(r.probability)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
+
+        <h3 className="th mt-5">Recent counterparties</h3>
         {peers.length === 0 ? (
-          <div className="text-[11.5px]" style={{ color: MUTED(45) }}>No other transfers with this address in the window.</div>
+          <p className="mt-1.5 text-[12.5px] text-ink-3">No other transfers with this address in the window.</p>
         ) : (
-          <div className="flex flex-col gap-1.5">
-            {peers.map((p) => (
-              <div key={p.address} className="flex items-center gap-2 text-[11.5px]">
-                <span className="mono" style={{ color: MUTED(75) }}>{shortAddr(p.address)}</span>
-                <span className="mono ml-auto" style={{ color: riskColor(p.probability) }}>{formatPct(p.probability)}</span>
-                <span className="mono w-14 text-right" style={{ color: MUTED(40) }}>{formatEth(p.value)} Ξ</span>
-              </div>
-            ))}
-          </div>
+          <table className="mt-1.5 w-full border-collapse text-[12.5px]">
+            <tbody>
+              {peers.map((p) => (
+                <tr key={p.address} className="border-b border-line">
+                  <td className="mono py-1.5 text-ink-2">{shortAddr(p.address)}</td>
+                  <td className="mono py-1.5 text-right text-ink-3">{formatEth(p.value)} Ξ</td>
+                  <td className="mono py-1.5 text-right font-semibold" style={{ color: riskColor(p.probability) }}>{formatPct(p.probability)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
 
         {tx.to_address && (
-          <button className="btn btn-secondary btn-block mt-3.5 text-[12.5px]" onClick={() => onAudit(tx.to_address)}>
-            <FileSearch size={14} />Audit counterparty contract
-          </button>
+          <>
+            <button className="btn btn-secondary mt-5 w-full" onClick={() => onAudit(tx.to_address)}>
+              <FileSearch size={15} />Audit the recipient contract
+            </button>
+          </>
         )}
       </div>
-    </div>
+    </section>
   )
 }

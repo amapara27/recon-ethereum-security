@@ -1,245 +1,177 @@
 import { useMemo } from 'react'
-import { ShieldCheck, ArrowRight, ArrowUpRight, FileSearch, LockOpen, Database, Radar, Eye } from 'lucide-react'
+import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
-import Sparkline from './Sparkline'
-import { shortHash, shortAddr, formatPct, toMs } from '../lib/format'
-import { riskColor, THREAT_THRESHOLD } from '../lib/risk'
+import Wordmark from './Wordmark'
+import RangeBar from './RangeBar'
+import { shortAddr, formatPct, relativeTime } from '../lib/format'
+import { riskColor, riskBand, THREAT_THRESHOLD } from '../lib/risk'
 import { indexByAddress, seriesFor } from '../lib/series'
 
-const MUTED = (pct) => `color-mix(in srgb, var(--color-text) ${pct}%, transparent)`
-
-// Model numbers are the ones the README documents for the trained classifier.
-const STATS = [
-  { value: '0.99', label: 'ROC-AUC, held-out labels' },
-  { value: '814', label: 'Behavioural features per address' },
-  { value: '0.96', label: 'Recall on held-out fraud' },
-  { value: '24/7', label: 'Mainnet coverage, every block' },
-]
+const REPO = 'https://github.com/amapara27/recon-ethereum-security'
 
 const STEPS = [
-  ['01', 'Ingest', 'Every transaction in a new block, straight off the node.'],
-  ['02', 'Featurise', '814 behavioural features per address, recomputed on each touch.'],
-  ['03', 'Score & surface', 'Fraud probability written to the alert feed the moment it lands.'],
+  ['Ingest', 'The monitor reads each new mainnet block and picks up to five senders it has not scored before. Coverage is partial on purpose: it keeps within free API limits.'],
+  ['Fingerprint', 'Each address’s ETH and ERC-20 history from Etherscan becomes 814 behavioural features: cadence, counterparty spread, value distribution, token mix.'],
+  ['Score', 'A random forest returns a fraud probability. The transfer and its score go into a feed that keeps the last 24 hours.'],
 ]
 
-const PILLARS = [
-  { icon: Radar, title: 'Live scanner', body: 'Dense feed of scored transfers with severity bands, a rolling risk strip and one-click drill-down into any address.' },
-  { icon: FileSearch, title: 'Contract auditor', body: 'Pulls verified source from Etherscan and returns a graded report: findings by severity, affected lines, executive summary.' },
-  { icon: Eye, title: 'Watchlist', body: 'Pin addresses and watch their score drift across the window as the feed re-scores them.' },
+// Numbers documented in the README for the trained classifier.
+const MODEL = [
+  ['Model', 'Random forest'],
+  ['Features per address', '814'],
+  ['ROC-AUC, held-out', '0.99'],
+  ['Recall, held-out fraud', '0.96'],
+]
+
+const LEGEND = [
+  ['0–50%', 'Reference interval', 'No flag. Shaded on every bar.', 'var(--ink)'],
+  ['50–80%', 'Elevated', 'Flagged for a second look.', 'var(--risk-med)'],
+  ['80–100%', 'High', 'Flagged, highest priority.', 'var(--risk-high)'],
 ]
 
 export default function LandingPage({ onEnter, onAudit, alerts, theme, onToggleTheme }) {
-  const { preview, perMinute, bands, index } = useMemo(() => {
-    // Rate over the minute ending at the newest alert — derived from the feed rather than
-    // the wall clock, so it stays stable across re-renders.
-    const newest = alerts.length ? toMs(alerts[0].timestamp) : 0
-    const counts = { safe: 0, med: 0, high: 0 }
-    for (const a of alerts) {
-      const p = a.probability || 0
-      if (p >= 0.8) counts.high++
-      else if (p >= THREAT_THRESHOLD) counts.med++
-      else counts.safe++
-    }
-    const max = Math.max(counts.safe, counts.med, counts.high, 1)
-    return {
-      preview: alerts.slice(0, 6),
-      index: indexByAddress(alerts),
-      perMinute: alerts.filter((a) => toMs(a.timestamp) >= newest - 60_000).length,
-      bands: [
-        { label: 'Low risk', hint: `< ${THREAT_THRESHOLD * 100}%`, n: counts.safe, color: 'var(--risk-safe)', w: `${(counts.safe / max) * 100}%` },
-        { label: 'Elevated', hint: `≥ ${THREAT_THRESHOLD * 100}%`, n: counts.med, color: 'var(--risk-med)', w: `${(counts.med / max) * 100}%` },
-        { label: 'High risk', hint: '≥ 80%', n: counts.high, color: 'var(--risk-high)', w: `${(counts.high / max) * 100}%` },
-      ],
-    }
-  }, [alerts])
+  const { preview, index, example } = useMemo(() => ({
+    preview: alerts.slice(0, 7),
+    index: indexByAddress(alerts),
+    // A real result to annotate: the newest flagged one, else the newest of any kind.
+    example: alerts.find((a) => (a.probability || 0) >= THREAT_THRESHOLD) || alerts[0] || null,
+  }), [alerts])
 
   return (
-    <div className="mx-auto max-w-[1240px] px-5 pb-24 sm:px-8">
-      <header className="flex flex-wrap items-center gap-x-7 gap-y-3 pt-[22px]">
-        <div className="mr-auto flex items-center gap-[9px]">
-          <span className="grid size-[30px] place-items-center rounded-lg border border-accent text-accent">
-            <ShieldCheck size={17} />
-          </span>
-          <span className="text-[17px] tracking-[-0.01em]" style={{ fontFamily: 'var(--font-heading)' }}>Recon</span>
-          <span className="tag tag-neutral ml-1">beta</span>
-        </div>
-        <nav className="hidden gap-[22px] text-[13px] md:flex" style={{ color: MUTED(62) }}>
-          <a href="#model" className="no-underline" style={{ color: 'inherit' }}>Model</a>
-          <a href="#pillars" className="no-underline" style={{ color: 'inherit' }}>Scanner</a>
-          <a href="#pillars" className="no-underline" style={{ color: 'inherit' }}>Auditor</a>
+    <div className="min-h-dvh bg-app text-ink">
+      <header className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4 sm:px-8">
+        <Wordmark className="mr-auto" />
+        <nav className="hidden items-center gap-5 text-[14px] font-semibold sm:flex">
+          <button onClick={onEnter} className="cursor-pointer bg-transparent text-ink-2 hover:text-ink">Scanner</button>
+          <button onClick={onAudit} className="cursor-pointer bg-transparent text-ink-2 hover:text-ink">Auditor</button>
+          <a href={REPO} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-ink-2 no-underline hover:text-ink">
+            Source<ArrowUpRight size={13} />
+          </a>
         </nav>
-        <div className="flex gap-2">
-          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
-          <button className="btn btn-primary" onClick={onEnter}>Launch app<ArrowRight size={14} /></button>
-        </div>
+        <ThemeToggle theme={theme} onToggle={onToggleTheme} />
       </header>
 
-      {/* ── Hero ─────────────────────────────────────────────────────── */}
-      <section className="grid items-center gap-14 py-16 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:pb-[72px] lg:pt-[88px]">
-        <div>
-          <div className="inline-flex items-center gap-[7px] text-[11px] uppercase tracking-[0.09em]" style={{ color: MUTED(60) }}>
-            <span className="rc-pulse size-[5px] rounded-full" style={{ background: 'var(--risk-safe)' }} aria-hidden="true" />
-            Scoring Ethereum mainnet · {alerts.length.toLocaleString()} transfers in the last 24h
+      <main className="mx-auto max-w-[1200px] px-5 sm:px-8">
+        <section className="grid items-start gap-10 pb-16 pt-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-14 lg:pt-16">
+          <div className="lg:pt-4">
+            <h1 className="max-w-[16ch] text-[38px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[50px]">
+              Fraud scores for Ethereum transfers, read as blocks land.
+            </h1>
+            <p className="mt-5 max-w-[48ch] text-[16px] leading-[1.6] text-ink-2 text-pretty">
+              Recon fingerprints new mainnet addresses from their on-chain history and scores each transfer with a
+              trained classifier. Anything at or above {THREAT_THRESHOLD * 100}% is flagged. A separate auditor
+              reviews verified Solidity on request.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-2.5">
+              <button className="btn btn-primary min-h-[40px] px-5" onClick={onEnter}>
+                Open the scanner<ArrowRight size={15} />
+              </button>
+              <button className="btn btn-secondary min-h-[40px] px-5" onClick={onAudit}>Audit a contract</button>
+            </div>
           </div>
-          <h1 className="mono mt-5 max-w-[15ch] text-[40px] leading-[1.06] tracking-[-0.045em] sm:text-[58px]" style={{ fontWeight: 500 }}>
-            Fraud, scored at block time.
-          </h1>
-          <p className="mt-[22px] max-w-[46ch] text-base leading-[1.6] text-pretty" style={{ color: MUTED(72) }}>
-            Recon scores every address touching mainnet with a random-forest classifier over 814 behavioural
-            features, and audits verified Solidity for reentrancy, honeypots and owner escape hatches.
-          </p>
-          <div className="mt-[30px] flex flex-wrap gap-2.5">
-            <button className="btn btn-primary px-[18px] py-2.5" onClick={onEnter}>
-              Open live scanner<ArrowRight size={14} />
-            </button>
-            <button className="btn btn-secondary px-[18px] py-2.5" onClick={onAudit}>
-              <FileSearch size={15} />Audit a contract
-            </button>
-          </div>
-          <div className="mt-[34px] flex flex-wrap gap-5 text-xs" style={{ color: MUTED(55) }}>
-            <span className="flex items-center gap-1.5"><LockOpen size={13} />Read-only · no wallet connection</span>
-            <span className="flex items-center gap-1.5"><Database size={13} />Etherscan-verified sources</span>
-          </div>
-        </div>
 
-        {/* Live feed preview — the same rows the scanner shows, straight from the API */}
-        <div className="card elev-md rc-rise overflow-hidden rounded-lg p-0">
-          <div className="flex items-center gap-2 border-b border-line px-3.5 py-[11px]">
-            <span className="rc-pulse size-1.5 rounded-full" style={{ background: 'var(--risk-safe)' }} aria-hidden="true" />
-            <span className="text-xs uppercase tracking-[0.06em]" style={{ color: MUTED(60) }}>Live feed</span>
-            <span className="mono ml-auto text-[11px]" style={{ color: MUTED(45) }}>{perMinute} scored / min</span>
-          </div>
-          <div>
+          {/* The same rows the scanner shows, straight from the API */}
+          <section className="sheet" aria-label="Latest results">
+            <div className="sheet-head">
+              <h2 className="sheet-title">Latest results</h2>
+              <span className={`size-[7px] rounded-full ${alerts.length ? 'pulse' : ''}`} style={{ background: alerts.length ? 'var(--act)' : 'var(--ink-3)' }} aria-hidden="true" />
+              <span className="ml-auto text-[12.5px] text-ink-3">{alerts.length.toLocaleString()} scored in 24h</span>
+            </div>
             {preview.length === 0 && (
-              <div className="px-3.5 py-10 text-center text-[13px]" style={{ color: MUTED(55) }}>
-                Waiting for the first scored block…
-              </div>
+              <p className="px-4 py-12 text-center text-[13.5px] text-ink-3">Waiting for the first scored block…</p>
             )}
             {preview.map((t) => {
-              const color = riskColor(t.probability)
+              const p = t.probability || 0
               return (
-                <div
-                  key={t.tx_hash}
-                  className="grid grid-cols-[1fr_auto] items-center gap-3 border-b px-3.5 py-[11px]"
-                  style={{ boxShadow: `inset 3px 0 0 ${color}`, borderColor: MUTED(7) }}
-                >
-                  <div className="min-w-0">
-                    <div className="mono truncate text-xs text-accent">{shortHash(t.tx_hash, 14)}</div>
-                    <div className="mono mt-0.5 text-[11px]" style={{ color: MUTED(50) }}>
-                      {shortAddr(t.address)} → {shortAddr(t.to_address)}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    <Sparkline
-                      values={seriesFor(index, t.address)}
-                      w={46}
-                      h={16}
-                      color={color}
-                      opacity={0.8}
-                      strokeWidth={1.4}
-                    />
-                    <span className="mono min-w-[46px] text-right text-xs" style={{ color }}>{formatPct(t.probability)}</span>
-                  </div>
+                <div key={t.tx_hash} className="mini-grid items-center border-b border-line px-4 py-2.5">
+                  <span className="text-[12.5px] text-ink-3" style={{ gridArea: 'age' }}>{relativeTime(t.timestamp)}</span>
+                  <span className="mono truncate text-[13px] text-ink-2" style={{ gridArea: 'parties' }}>
+                    {shortAddr(t.address)} → {t.to_address ? shortAddr(t.to_address) : 'new contract'}
+                  </span>
+                  <RangeBar value={p} history={seriesFor(index, t.address)} height={16} style={{ gridArea: 'bar' }} />
+                  <span className={`mono text-right text-[13.5px] ${p >= THREAT_THRESHOLD ? 'font-bold' : ''}`} style={{ gridArea: 'pct', color: riskColor(p) }}>
+                    {formatPct(p)}
+                  </span>
                 </div>
               )
             })}
-          </div>
-          <button className="btn btn-ghost w-full rounded-none py-[11px] text-xs" onClick={onEnter}>
-            Open full scanner<ArrowUpRight size={13} />
-          </button>
-        </div>
-      </section>
+            <button className="btn btn-ghost w-full justify-between rounded-none px-4 py-3 text-[13px]" onClick={onEnter}>
+              See every result in the scanner<ArrowRight size={14} />
+            </button>
+          </section>
+        </section>
 
-      {/* ── Model stats band ─────────────────────────────────────────── */}
-      <section
-        className="-mx-5 rounded-lg px-5 py-11 sm:-mx-8 sm:px-8"
-        style={{ background: 'var(--color-section)', color: '#f3f5fe' }}
-      >
-        <div className="mx-auto grid max-w-[1176px] grid-cols-2 gap-8 lg:grid-cols-4">
-          {STATS.map((s) => (
-            <div key={s.label}>
-              <div className="mono text-[38px] tracking-[-0.03em]">{s.value}</div>
-              <div className="mt-1.5 text-xs" style={{ color: 'color-mix(in srgb, #f3f5fe 70%, transparent)' }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── How the model works ──────────────────────────────────────── */}
-      <section id="model" className="grid items-start gap-16 pt-[88px] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-        <div>
-          <h6 className="text-accent">How the model works</h6>
-          <h2 className="mt-3.5 tracking-[-0.02em]">Behaviour, not blocklists.</h2>
-          <p className="mt-[18px] text-[15px] leading-[1.65] text-pretty" style={{ color: MUTED(70) }}>
-            Blocklists only catch addresses that already burned someone. Recon fingerprints how an address
-            transacts — timing, counterparty churn, value patterns, contract-call shape — so a fresh wallet
-            draining a victim scores high on its first hostile transfer.
-          </p>
-          <div className="mt-[26px] flex flex-col gap-3.5">
-            {STEPS.map(([n, title, body]) => (
-              <div key={n} className="flex gap-3">
-                <span className="mono pt-0.5 text-xs text-accent">{n}</span>
-                <div>
-                  <div className="text-sm" style={{ fontFamily: 'var(--font-heading)' }}>{title}</div>
-                  <div className="text-[13px]" style={{ color: MUTED(62) }}>{body}</div>
+        <section className="grid gap-10 border-t border-line-strong py-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-14">
+          <div>
+            <h2 className="text-[24px]">How a score is made</h2>
+            <dl className="m-0 mt-5">
+              {STEPS.map(([title, body]) => (
+                <div key={title} className="border-t border-line py-3.5">
+                  <dt className="text-[15px] font-bold">{title}</dt>
+                  <dd className="m-0 mt-1 max-w-[56ch] text-[14.5px] leading-[1.6] text-ink-2">{body}</dd>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Real distribution of the live window, in place of the mock's invented SHAP panel */}
-        <div className="card elev-sm rounded-lg p-5">
-          <div className="flex items-baseline justify-between">
-            <div className="text-[15px]" style={{ fontFamily: 'var(--font-heading)' }}>Scores in the live window</div>
-            <span className="mono text-[11px]" style={{ color: MUTED(45) }}>{alerts.length.toLocaleString()} transfers</span>
-          </div>
-          <div className="mt-5 flex flex-col gap-[13px]">
-            {bands.map((b) => (
-              <div key={b.label}>
-                <div className="mb-[5px] flex justify-between text-xs">
-                  <span style={{ color: MUTED(78) }}>{b.label} <span className="mono" style={{ color: MUTED(45) }}>{b.hint}</span></span>
-                  <span className="mono" style={{ color: b.color }}>{b.n.toLocaleString()}</span>
+              ))}
+            </dl>
+            <dl className="m-0 mt-4 grid grid-cols-2 border-t border-line-strong">
+              {MODEL.map(([k, v]) => (
+                <div key={k} className="py-3 pr-3">
+                  <dt className="th">{k}</dt>
+                  <dd className="m-0 mt-0.5 text-[14px]">{v}</dd>
                 </div>
-                <div className="h-[5px] rounded-[3px]" style={{ background: MUTED(8) }}>
-                  <div className="h-[5px] rounded-[3px]" style={{ background: b.color, width: b.w }} />
-                </div>
-              </div>
-            ))}
+              ))}
+            </dl>
           </div>
-          <p className="mt-5 mb-0 text-[12.5px]" style={{ color: MUTED(55) }}>
-            Counted from the last 24 hours of scored transfers, refreshed as blocks land.
-          </p>
-        </div>
-      </section>
 
-      {/* ── Pillars ──────────────────────────────────────────────────── */}
-      <section id="pillars" className="grid gap-[18px] pt-[88px] md:grid-cols-3">
-        {PILLARS.map(({ icon: Icon, title, body }) => (
-          <div key={title} className="card elev-sm rounded-lg p-5">
-            <Icon size={20} className="text-accent" />
-            <div className="mt-3.5 text-base" style={{ fontFamily: 'var(--font-heading)' }}>{title}</div>
-            <p className="mb-0 mt-2 text-[13px] leading-[1.6]" style={{ color: MUTED(65) }}>{body}</p>
-          </div>
-        ))}
-      </section>
-
-      {/* ── CTA ──────────────────────────────────────────────────────── */}
-      <section className="pt-[88px]">
-        <div className="card elev-sm flex-row flex-wrap items-center gap-8 rounded-lg p-8">
-          <div className="min-w-[280px] flex-1">
-            <h3 className="tracking-[-0.02em]">Check an address before you sign.</h3>
-            <p className="mb-0 mt-2.5 text-sm" style={{ color: MUTED(65) }}>
-              No wallet, no account. The scanner is read-only and open.
+          <div>
+            <h2 className="text-[24px]">Reading a score</h2>
+            <p className="mt-2 max-w-[60ch] text-[14.5px] leading-[1.6] text-ink-2">
+              Every score in Recon sits on the same 0–100% scale, so bars compare at a glance. Like a lab result, only
+              values outside the reference interval get colour.
             </p>
+            {example && (
+              <figure className="sheet m-0 mt-5 px-4 pb-3 pt-4">
+                <div className="flex items-baseline gap-3">
+                  <span className="mono text-[26px] font-semibold leading-none" style={{ color: riskColor(example.probability) }}>
+                    {formatPct(example.probability)}
+                  </span>
+                  <span className="text-[13.5px] font-bold" style={{ color: riskColor(example.probability) }}>{riskBand(example.probability)}</span>
+                  <span className="mono ml-auto truncate text-[12.5px] text-ink-3">{shortAddr(example.address)}</span>
+                </div>
+                <RangeBar value={example.probability} history={seriesFor(index, example.address)} height={22} axis className="mt-3" />
+                <figcaption className="mt-1 text-[12.5px] text-ink-3">Hollow dots: the same address’s other scores in the window.</figcaption>
+              </figure>
+            )}
+            <dl className="m-0 mt-5">
+              {LEGEND.map(([range, name, body, color]) => (
+                <div key={range} className="grid grid-cols-[76px_minmax(0,1fr)] gap-x-4 border-t border-line py-2.5">
+                  <dt className="mono text-[13.5px]">{range}</dt>
+                  <dd className="m-0 text-[14px]">
+                    <span className="font-bold" style={{ color }}>{name}.</span> <span className="text-ink-2">{body}</span>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            <div className="mt-8 border-t border-line-strong pt-4">
+              <h3 className="text-[15px] font-bold">Contract audits</h3>
+              <p className="mt-1 max-w-[60ch] text-[14.5px] leading-[1.6] text-ink-2">
+                Separate from the fraud score. Give the auditor a verified contract address and it pulls the Solidity
+                from Etherscan, then returns a 0–100 safety score, a risk level and findings by severity with line
+                numbers. Contracts audited before come back instantly.
+              </p>
+              <button className="btn btn-ghost mt-2 -ml-1.5 text-[14px]" onClick={onAudit}>
+                Audit a contract<ArrowRight size={14} />
+              </button>
+            </div>
           </div>
-          <button className="btn btn-primary px-5 py-[11px]" onClick={onEnter}>Launch app<ArrowRight size={14} /></button>
-        </div>
-        <div className="mt-[26px] flex flex-wrap gap-[18px] text-xs" style={{ color: MUTED(45) }}>
-          <span>Recon · Ethereum threat intelligence</span>
-          <span className="sm:ml-auto">Scores are probabilistic. Not financial advice.</span>
-        </div>
-      </section>
+        </section>
+
+        <footer className="flex flex-wrap gap-x-6 gap-y-2 border-t border-line py-6 text-[13px] text-ink-3">
+          <a href={REPO} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1">
+            Source on GitHub<ArrowUpRight size={12} />
+          </a>
+        </footer>
+      </main>
     </div>
   )
 }

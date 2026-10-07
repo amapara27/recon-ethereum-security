@@ -27,3 +27,7 @@ export function severityColor(severity) {
   if (s === 'medium') return 'var(--risk-med)'
   return 'var(--risk-safe)'
 }
+
+// Flag-column text, the way a lab sheet marks results outside the reference range.
+export const riskFlag = (p) =>
+  (p || 0) >= 0.8 ? 'High' : (p || 0) >= THREAT_THRESHOLD ? 'Elevated' : ''
