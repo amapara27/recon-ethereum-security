@@ -40,7 +40,7 @@ export default function LandingPage({ onEnter, onAudit, alerts, theme, onToggleT
   return (
     <div className="min-h-dvh bg-app text-ink">
       <header className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4 sm:px-8">
-        <Wordmark className="mr-auto" />
+        <Wordmark className="mr-auto" accent="var(--act)" />
         <nav className="hidden items-center gap-5 text-[14px] font-semibold sm:flex">
           <button onClick={onEnter} className="cursor-pointer bg-transparent text-ink-2 hover:text-ink">Scanner</button>
           <button onClick={onAudit} className="cursor-pointer bg-transparent text-ink-2 hover:text-ink">Auditor</button>
