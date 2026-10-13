@@ -19,8 +19,10 @@ const STEPS = [
 const MODEL = [
   ['Model', 'Random forest'],
   ['Features per address', '814'],
-  ['ROC-AUC, held-out', '0.99'],
-  ['Recall, held-out fraud', '0.96'],
+  ['ROC-AUC, held-out', '0.9920'],
+  ['Precision, held-out fraud', '0.9945'],
+  ['Recall, held-out fraud', '0.8280'],
+  ['F1, held-out fraud', '0.9036'],
 ]
 
 const LEGEND = [

@@ -31,14 +31,25 @@ Web3. For each address it hasn't seen before, it pulls that address's full ETH
 and ERC-20 transaction history from Etherscan, turns it into an **814-column
 behavioural fingerprint** (transaction cadence, counterparty spread, value
 distributions, token-preference one-hots), and runs it through a Random Forest
-classifier — **ROC-AUC 0.99** and **recall 0.96** on held-out data. Every scored
+classifier — **ROC-AUC 0.9920** and **fraud recall 0.8280** on held-out data. Every scored
 transaction is written to SQLite with its fraud probability.
 
-Recall is the number that matters here. A missed fraudulent address is someone
-losing funds; a false positive just means a transaction gets a second look. The
-model catches **96% of fraudulent addresses** in the held-out set, and the
-dashboard is deliberately tuned to surface rather than suppress — anything at or
-above 50% probability lands in the threat panel.
+On the held-out test set of **1,969 addresses** (1,533 legitimate and 436 fraud),
+the model catches **82.80% of fraudulent addresses**: 361 detected and 75 missed.
+Of 363 fraud predictions, 361 are correct and 2 are false alarms. At the default
+0.5 decision threshold, precision is high, but about one in six fraudulent
+addresses is missed. The dashboard flags probabilities at or above 50%.
+
+| Test metric | Fraud (1) | Legitimate (0) |
+|---|---|---|
+| Precision | 0.9945 | 0.9533 |
+| Recall | 0.8280 | 0.9987 |
+| F1 | 0.9036 | 0.9755 |
+
+Overall accuracy is **0.9609**, macro F1 **0.9395**, weighted F1 **0.9596**,
+ROC-AUC **0.9920**, and average precision (PR summary) **0.9805**.
+Evaluation uses the notebook's stratified 60/20/20 training/validation/test split
+with `random_state=1`. These are offline test results, not measured live performance.
 
 **2. AI contract auditing.** Give it a contract address and Recon fetches the
 verified source from Etherscan and hands it to **Claude Opus 4.5** with an
